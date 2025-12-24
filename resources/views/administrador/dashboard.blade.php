@@ -360,7 +360,7 @@
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>$3,456</h3>
+                        <h3>3,456 Bs</h3>
                         <p>Ingresos hoy</p>
                     </div>
                 </div>

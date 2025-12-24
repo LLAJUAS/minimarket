@@ -203,6 +203,29 @@
                                     <p class="error-message">{{ $message }}</p>
                                 @enderror
                             </div>
+                            
+                            {{-- Fecha Vencimiento Lote --}}
+                            <div class="form-group">
+                                <label for="fecha_vencimiento_lote" class="form-label">
+                                    Fecha Vencimiento Lote
+                                </label>
+                                <div class="input-wrapper">
+                                    <div class="input-icon">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="date" 
+                                        id="fecha_vencimiento_lote" 
+                                        name="fecha_vencimiento_lote" 
+                                        value="{{ old('fecha_vencimiento_lote', $ingresoProducto->fecha_vencimiento_lote ? $ingresoProducto->fecha_vencimiento_lote->format('Y-m-d') : '') }}" 
+                                        class="form-input @error('fecha_vencimiento_lote') error @enderror">
+                                </div>
+                                @error('fecha_vencimiento_lote')
+                                    <p class="error-message">{{ $message }}</p>
+                                @enderror
+                            </div>
                             <div class="form-group">
                                 <label for="numero_factura" class="form-label">
                                     Número de Factura

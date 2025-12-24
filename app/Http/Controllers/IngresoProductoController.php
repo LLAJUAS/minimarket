@@ -7,16 +7,73 @@ use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Carbon\Carbon;
 
 class IngresoProductoController extends Controller
 {
     /**
      * Muestra la lista de productos (ingresos) de un proveedor específico.
      */
-    public function index(Proveedor $proveedor): View
+    public function index(Proveedor $proveedor, Request $request): View
     {
-        // Cargamos los ingresos del proveedor, ordenados por fecha descendente (más reciente primero)
-        $ingresos = $proveedor->ingresosProductos()->orderBy('fecha_ingreso', 'desc')->get();
+        $query = $proveedor->ingresosProductos();
+
+        // Filtro por nombre de producto
+        if ($request->filled('nombre_producto')) {
+            $query->where('nombre_producto', 'like', '%' . $request->nombre_producto . '%');
+        }
+
+        // Filtro por período predefinido
+        if ($request->filled('filtro_periodo')) {
+            $filtro = $request->filtro_periodo;
+            $hoy = Carbon::now()->startOfDay();
+
+            switch ($filtro) {
+                case 'esta_semana':
+                    $query->whereBetween('fecha_ingreso', [
+                        $hoy->clone()->startOfWeek(),
+                        $hoy->clone()->endOfWeek()
+                    ]);
+                    break;
+                case 'este_mes':
+                    $query->whereBetween('fecha_ingreso', [
+                        $hoy->clone()->startOfMonth(),
+                        $hoy->clone()->endOfMonth()
+                    ]);
+                    break;
+                case 'hace_2_meses':
+                    $query->whereBetween('fecha_ingreso', [
+                        $hoy->clone()->subMonths(2)->startOfMonth(),
+                        $hoy->clone()->endOfMonth()
+                    ]);
+                    break;
+                case 'hace_3_meses':
+                    $query->whereBetween('fecha_ingreso', [
+                        $hoy->clone()->subMonths(3)->startOfMonth(),
+                        $hoy->clone()->endOfMonth()
+                    ]);
+                    break;
+                case 'hace_1_año':
+                    $query->whereBetween('fecha_ingreso', [
+                        $hoy->clone()->subYear(),
+                        $hoy
+                    ]);
+                    break;
+            }
+        }
+
+        // Filtro por rango de fechas personalizado
+        if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
+            $query->whereBetween('fecha_ingreso', [
+                Carbon::createFromFormat('Y-m-d', $request->fecha_inicio)->startOfDay(),
+                Carbon::createFromFormat('Y-m-d', $request->fecha_fin)->endOfDay()
+            ]);
+        }
+
+        // Cargamos los ingresos ordenados por fecha descendente (más reciente primero)
+        $ingresos = $query->with(['productoDetalle.subcategoria.categoria'])
+            ->orderBy('fecha_ingreso', 'desc')
+            ->get();
 
         return view('administrador.proveedores.productos.index', compact('proveedor', 'ingresos'));
     }
@@ -52,6 +109,7 @@ class IngresoProductoController extends Controller
         'cantidad_inicial' => 'required|integer|min:1',
         'costo_total' => 'required|numeric|min:0',
         'fecha_ingreso' => 'required|date',
+        'fecha_vencimiento_lote' => 'nullable|date',
     ]);
 
     IngresoProducto::create([
@@ -61,6 +119,7 @@ class IngresoProductoController extends Controller
         'cantidad_restante' => $request->cantidad_inicial, // inicia igual
         'costo_total' => $request->costo_total,
         'fecha_ingreso' => $request->fecha_ingreso,
+        'fecha_vencimiento_lote' => $request->fecha_vencimiento_lote,
         'numero_factura' => $request->numero_factura,
     ]);
 
@@ -90,6 +149,7 @@ class IngresoProductoController extends Controller
             'cantidad_inicial' => 'required|integer|min:1',
             'costo_total' => 'required|numeric|min:0',
             'fecha_ingreso' => 'required|date',
+            'fecha_vencimiento_lote' => 'nullable|date',
             'numero_factura' => 'nullable|string|max:255',
         ]);
         

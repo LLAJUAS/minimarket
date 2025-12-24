@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class IngresoProducto extends Model
 {
-  
     use HasFactory, SoftDeletes;
-protected $table = 'ingresos_productos'; 
+
+    protected $table = 'ingresos_productos'; 
+
     /**
-     * Los atributos que son asignables masivamente.
-     * @var array
+     * Atributos asignables masivamente
      */
     protected $fillable = [
         'proveedor_id',
@@ -22,22 +22,23 @@ protected $table = 'ingresos_productos';
         'cantidad_restante',
         'costo_total',
         'fecha_ingreso',
+        'fecha_vencimiento_lote', // 👈 NUEVO
         'numero_factura',
     ];
 
     /**
-     * Los atributos que deben ser convertidos a tipos nativos.
-     * @var array
+     * Casts de atributos
      */
     protected $casts = [
         'fecha_ingreso' => 'date',
+        'fecha_vencimiento_lote' => 'date', // 👈 NUEVO
         'cantidad_inicial' => 'integer',
         'cantidad_restante' => 'integer',
         'costo_total' => 'decimal:2',
     ];
 
     /**
-     * Obtener el proveedor asociado a este ingreso.
+     * Relación: un ingreso pertenece a un proveedor
      */
     public function proveedor()
     {
@@ -45,8 +46,7 @@ protected $table = 'ingresos_productos';
     }
 
     /**
-     * Obtener el producto de detalle creado a partir de este ingreso.
-     * Relación uno a uno.
+     * Relación: un ingreso genera un producto
      */
     public function productoDetalle()
     {

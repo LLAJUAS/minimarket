@@ -31,6 +31,14 @@ class Proveedor extends Model
     }
 
     /**
+     * Alias para ingresosProductos
+     */
+    public function ingresos()
+    {
+        return $this->ingresosProductos();
+    }
+
+    /**
      * Para contar los productos, usamos la relación con ingresos_productos
      * ya que cada registro en esa tabla representa un producto.
      */

@@ -45,7 +45,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    Registrar Nuevo Producto
+                    Registrar nuevo lote
                 </a>
             </div>
         </div>
@@ -59,6 +59,89 @@
                 <p>{{ session('success') }}</p>
             </div>
         @endif
+
+     {{-- Filtros de Búsqueda --}}
+<div class="filters-card">
+    <form method="GET" action="{{ route('proveedores.productos.index', $proveedor->id) }}" class="space-y-4">
+        <div class="filters-header">
+            <h3 class="filters-title">Filtrar lotes</h3>
+            <a href="{{ route('proveedores.productos.index', $proveedor->id) }}" class="btn-reset-filters">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                    </path>
+                </svg>
+                Limpiar Filtros
+            </a>
+        </div>
+
+        <div class="filters-grid">
+            {{-- Búsqueda por nombre --}}
+            <div class="filter-group">
+                <label class="filter-label">Nombre del lote</label>
+                <input 
+                    type="text" 
+                    name="nombre_producto" 
+                    value="{{ request('nombre_producto') }}"
+                    placeholder="Buscar por nombre..."
+                    class="filter-input"
+                >
+            </div>
+
+            {{-- Filtro por período --}}
+            <div class="filter-group">
+                <label class="filter-label">Período</label>
+                <select name="filtro_periodo" class="filter-select">
+                    <option value="">Todos los períodos</option>
+                    <option value="esta_semana" {{ request('filtro_periodo') === 'esta_semana' ? 'selected' : '' }}>Esta Semana</option>
+                    <option value="este_mes" {{ request('filtro_periodo') === 'este_mes' ? 'selected' : '' }}>Este Mes</option>
+                    <option value="hace_2_meses" {{ request('filtro_periodo') === 'hace_2_meses' ? 'selected' : '' }}>Últimos 2 Meses</option>
+                    <option value="hace_3_meses" {{ request('filtro_periodo') === 'hace_3_meses' ? 'selected' : '' }}>Últimos 3 Meses</option>
+                    <option value="hace_1_año" {{ request('filtro_periodo') === 'hace_1_año' ? 'selected' : '' }}>Último Año</option>
+                </select>
+            </div>
+
+            {{-- Separador --}}
+            <div class="col-span-full">
+                <p class="filter-label">Buscar por rango de ingreso</p>
+                <hr>
+            </div>
+
+            {{-- Rango de fechas --}}
+            <div class="filter-group">
+                <label class="filter-label">Fecha Inicio</label>
+                <input 
+                    type="date" 
+                    name="fecha_inicio" 
+                    value="{{ request('fecha_inicio') }}"
+                    class="filter-input"
+                >
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Fecha Fin</label>
+                <input 
+                    type="date" 
+                    name="fecha_fin" 
+                    value="{{ request('fecha_fin') }}"
+                    class="filter-input"
+                >
+            </div>
+
+            {{-- Botón de búsqueda --}}
+            <div class="filter-group flex items-end">
+                <button type="submit" class="btn-filter">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+                        </path>
+                    </svg>
+                    Filtrar
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
 
         {{-- Lista de Productos --}}
         <div class="space-y-4">
@@ -125,6 +208,24 @@
                                         <p class="info-value">{{ $ingreso->fecha_ingreso->format('d/m/Y') }}</p>
                                     </div>
                                 </div>
+
+                                <div class="info-item">
+                                    <div class="info-icon date-icon">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="info-label">Fecha Vencimiento Lote</p>
+                                        <p class="info-value">
+                                            @if($ingreso->fecha_vencimiento_lote)
+                                                {{ $ingreso->fecha_vencimiento_lote->format('d/m/Y') }}
+                                            @else
+                                                <span class="text-gray-400">Sin especificar</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -136,6 +237,30 @@
                                 </svg>
                                 Editar
                             </a>
+                            @if($ingreso->productoDetalle)
+                                <button type="button" 
+                                        class="btn-action btn-view"
+                                        onclick="openProductModal('{{ $ingreso->productoDetalle->id }}',
+                                                                '{{ $ingreso->productoDetalle->nombre }}', 
+                                                                '{{ $ingreso->productoDetalle->codigo ?? 'Sin código' }}',
+                                                                '{{ $ingreso->productoDetalle->categoria->nombre ?? 'N/A' }}',
+                                                                '{{ $ingreso->productoDetalle->subcategoria->nombre ?? 'N/A' }}',
+                                                                '{{ number_format($ingreso->productoDetalle->precio_venta_unitario, 2) }}',
+                                                                '{{ $ingreso->productoDetalle->imagen ? asset('storage/' . $ingreso->productoDetalle->imagen) : '' }}')">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    Ver Producto
+                                </button>
+                            @else
+                                <a href="{{ route('productos.create', ['ingreso_id' => $ingreso->id]) }}" class="btn-action btn-edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    Crear producto nuevo
+                                </a>
+                            @endif
                             <form action="{{ route('ingresos.destroy', $ingreso->id) }}" method="POST" class="w-full" 
                                   onsubmit="return confirm('¿Estás seguro de que quieres eliminar este ingreso?');">
                                 @csrf
@@ -172,6 +297,132 @@
 
     </div>
 </div>
+
+{{-- Product View Modal --}}
+<div id="productModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        {{-- Background overlay --}}
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeProductModal()"></div>
+
+        {{-- Modal panel --}}
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Detalle del Producto
+                            </h3>
+                            <button type="button" onclick="closeProductModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            {{-- Image Container --}}
+                            <div class="flex justify-center mb-6">
+                                <div id="modal-image-container" class="relative w-48 h-48 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                                    <img id="modal-image" src="" alt="Producto" class="w-full h-full object-cover">
+                                    <div id="modal-no-image" class="absolute inset-0 flex items-center justify-center text-gray-400">
+                                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Details Grid --}}
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Nombre</p>
+                                    <p id="modal-nombre" class="mt-1 text-sm text-gray-900 font-semibold"></p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Código</p>
+                                    <p id="modal-codigo" class="mt-1 text-sm text-gray-900 font-mono"></p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Categoría</p>
+                                    <p id="modal-categoria" class="mt-1 text-sm text-gray-900"></p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Subcategoría</p>
+                                    <p id="modal-subcategoria" class="mt-1 text-sm text-gray-900"></p>
+                                </div>
+                                <div class="col-span-2">
+                                    <p class="text-sm font-medium text-gray-500">Precio de Venta</p>
+                                    <p id="modal-precio" class="mt-1 text-xl text-green-600 font-bold"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <button type="button" 
+                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-slate-600 text-base font-medium text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 sm:w-auto sm:text-sm"
+                        onclick="closeProductModal()">
+                    Cerrar
+                </button>
+                <a id="modal-edit-btn" href="#"
+                   class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm">
+                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Editar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openProductModal(id, nombre, codigo, categoria, subcategoria, precio, imageUrl) {
+        // Update edit button link
+        const editBtn = document.getElementById('modal-edit-btn');
+        editBtn.href = `/productos/${id}/editar`;
+        document.getElementById('modal-nombre').textContent = nombre;
+        document.getElementById('modal-codigo').textContent = codigo;
+        document.getElementById('modal-categoria').textContent = categoria;
+        document.getElementById('modal-subcategoria').textContent = subcategoria;
+        document.getElementById('modal-precio').textContent = 'Bs ' + precio;
+        
+        // Handle image
+        const imgElement = document.getElementById('modal-image');
+        const noImageElement = document.getElementById('modal-no-image');
+        
+        if (imageUrl) {
+            imgElement.src = imageUrl;
+            imgElement.classList.remove('hidden');
+            noImageElement.classList.add('hidden');
+        } else {
+            imgElement.classList.add('hidden');
+            noImageElement.classList.remove('hidden');
+        }
+        
+        // Show modal
+        const modal = document.getElementById('productModal');
+        modal.classList.remove('hidden');
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeProductModal() {
+        const modal = document.getElementById('productModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    // Close on escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeProductModal();
+        }
+    });
+</script>
 
 <style>
     /* Estilos base */
@@ -440,6 +691,18 @@
         transform: translateY(-1px);
     }
 
+    .btn-view {
+        background: rgb(59, 130, 246);
+        color: white;
+        box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-view:hover {
+        background: rgb(37, 99, 235);
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+        transform: translateY(-1px);
+    }
+    
     .btn-delete {
         background: rgb(220, 38, 38);
         color: white;
@@ -484,6 +747,137 @@
     .empty-text {
         color: rgb(107, 114, 128);
         margin-bottom: 1.5rem;
+    }
+
+    /* Filtros */
+    .filters-card {
+        background: white;
+        border-radius: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgb(243, 244, 246);
+    }
+
+    .filters-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: rgb(17, 24, 39);
+    }
+
+    .btn-reset-filters {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgb(241, 245, 249);
+        color: rgb(51, 65, 85);
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 0.625rem;
+        transition: all 0.2s ease;
+        border: 1px solid rgb(226, 232, 240);
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-reset-filters:hover {
+        background: rgb(226, 232, 240);
+        border-color: rgb(203, 213, 225);
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .filters-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .filters-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.25rem;
+        }
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: rgb(55, 65, 81);
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .filter-input,
+    .filter-select {
+        padding: 0.75rem 1rem;
+        background: rgb(249, 250, 251);
+        border: 1px solid rgb(226, 232, 240);
+        border-radius: 0.625rem;
+        font-size: 0.9375rem;
+        color: rgb(31, 41, 55);
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .filter-input:focus,
+    .filter-select:focus {
+        outline: none;
+        background: white;
+        border-color: rgb(59, 130, 246);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .filter-input::placeholder {
+        color: rgb(156, 163, 175);
+    }
+
+    .btn-filter {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgb(59, 130, 246);
+        color: white;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        border-radius: 0.625rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-filter:hover {
+        background: rgb(37, 99, 235);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .btn-filter:active {
+        transform: translateY(0);
     }
 </style>
 @endsection
