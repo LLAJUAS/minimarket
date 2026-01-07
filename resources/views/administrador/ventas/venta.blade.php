@@ -342,31 +342,56 @@ $(document).ready(function() {
     // Escáner de código de barras: detecta entrada rápida
     let barcodeBuffer = "";
     let lastKeyTime = Date.now();
+    let scanTimeout = null;
+    let lastProcessedCode = "";
+    let lastProcessedTime = 0;
 
     document.addEventListener('keydown', function(e) {
-        // Ignorar si el foco está en un input que no sea el buscador (excepto si el buffer ya tiene algo)
-        if (document.activeElement.tagName === 'INPUT' && document.activeElement.id !== 'buscador' && barcodeBuffer.length === 0) {
+        // Ignorar si el foco está en un input que no sea el buscador
+        const isBuscador = document.activeElement.id === 'buscador';
+        if (document.activeElement.tagName === 'INPUT' && !isBuscador && barcodeBuffer.length === 0) {
             return;
         }
 
         const currentTime = Date.now();
-        if (currentTime - lastKeyTime > 50) {
+        if (currentTime - lastKeyTime > 100) {
             barcodeBuffer = "";
         }
         
+        if (scanTimeout) clearTimeout(scanTimeout);
+
         if (e.key !== 'Enter') {
-            if (e.key.length === 1) barcodeBuffer += e.key;
+            if (e.key.length === 1) {
+                barcodeBuffer += e.key;
+                
+                scanTimeout = setTimeout(() => {
+                    if (barcodeBuffer.length >= 5) {
+                        buscarYAgregar(barcodeBuffer);
+                        barcodeBuffer = "";
+                        if (isBuscador) $('#buscador').val('');
+                    }
+                }, 100);
+            }
         } else {
             if (barcodeBuffer.length >= 5) {
                 buscarYAgregar(barcodeBuffer);
                 barcodeBuffer = "";
                 e.preventDefault();
+            } else if (isBuscador) {
+                // Si el usuario presiona Enter manualmente con algo en el buscador
+                const term = $('#buscador').val().trim();
+                if (term) {
+                    buscarYAgregar(term);
+                    $('#buscador').val('');
+                    $('#search-results').addClass('hidden');
+                    e.preventDefault();
+                }
             }
         }
         lastKeyTime = currentTime;
     });
 
-    // Búsqueda en vivo
+    // Búsqueda en vivo (solo visualización, no auto-agrega para evitar duplicados con el scanner)
     $('#buscador').on('input', function() {
         const term = $(this).val().trim();
         if (term.length < 2) {
@@ -392,27 +417,13 @@ $(document).ready(function() {
                 `;
             });
             $('#search-results').html(html).removeClass('hidden');
-        }).fail(function() {
-            console.error("Error al buscar productos");
         });
     });
 
-    // Delegación de eventos para resultados de búsqueda
+    // Delegación de eventos para resultados de búsqueda (clic manual)
     $(document).on('click', '.search-result-item', function() {
         const productData = $(this).data('product');
         agregarAlCarrito(productData);
-    });
-
-    // Enter en buscador
-    $('#buscador').on('keypress', function(e) {
-        if (e.which == 13) {
-            const term = $(this).val().trim();
-            if (term) {
-                buscarYAgregar(term);
-                $(this).val('');
-                $('#search-results').addClass('hidden');
-            }
-        }
     });
 
     // Cerrar resultados al hacer clic fuera
@@ -423,6 +434,15 @@ $(document).ready(function() {
     });
 
     function buscarYAgregar(term) {
+        const now = Date.now();
+        // Cooldown de 500ms para el mismo código para evitar duplicados por scanner
+        if (term === lastProcessedCode && (now - lastProcessedTime) < 500) {
+            return;
+        }
+        
+        lastProcessedCode = term;
+        lastProcessedTime = now;
+
         $.get("{{ route('venta.buscar.producto') }}", { term }, function(res) {
             if (res.length > 0) {
                 // Priorizar coincidencia exacta de código
