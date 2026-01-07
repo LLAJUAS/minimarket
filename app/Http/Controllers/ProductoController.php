@@ -2,30 +2,73 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Proveedor;
-use App\Models\IngresoProducto;
+use App\Models\Producto;
 use App\Models\Categoria;
+use App\Models\Subcategoria;
+use App\Models\IngresoProducto;
+use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProductoController extends Controller
 {
     /**
-     * Muestra una lista de los productos registrados.
+     * Muestra la lista de productos con filtros.
      */
     public function index(Request $request): View
     {
         $search = $request->get('search');
         $categoriaId = $request->get('categoria_id');
         $subcategoriaId = $request->get('subcategoria_id');
-        $orden = $request->get('orden', 'desc'); // 'desc' (último) o 'asc' (más antiguo)
-        
-        $query = \App\Models\Producto::with(['subcategoria.categoria', 'ingresoProducto']);
+        $orden = $request->get('orden', 'desc');
+        $filtroEstado = $request->get('filtro_estado');
 
-        // Filtro por búsqueda
+        // 1. Estadísticas Globales (Sin filtros aplicados)
+        $stats = [
+            'total_productos' => Producto::count(),
+            'proximos_vencer' => Producto::whereHas('ingresoProducto', function($q) {
+                $q->where('fecha_vencimiento_lote', '>', now())
+                  ->where('fecha_vencimiento_lote', '<=', now()->addDays(15));
+            })->count(),
+            'vencidos' => Producto::whereHas('ingresoProducto', function($q) {
+                $q->where('fecha_vencimiento_lote', '<', now()->startOfDay());
+            })->count(),
+            'bajo_stock' => Producto::whereHas('ingresoProducto', function($q) {
+                $q->whereColumn('cantidad_restante', '<=', 'stock_minimo')
+                  ->where('cantidad_restante', '>', 0);
+            })->count(),
+            'eliminados' => Producto::onlyTrashed()->count(),
+        ];
+
+        $query = Producto::with(['subcategoria.categoria', 'ingresoProducto']);
+
+        // Filtro por Estado (desde las cards)
+        if ($filtroEstado) {
+            switch ($filtroEstado) {
+                case 'proximos_vencer':
+                    $query->whereHas('ingresoProducto', function($q) {
+                        $q->where('fecha_vencimiento_lote', '>', now())
+                          ->where('fecha_vencimiento_lote', '<=', now()->addDays(15));
+                    });
+                    break;
+                case 'vencidos':
+                    $query->whereHas('ingresoProducto', function($q) {
+                        $q->where('fecha_vencimiento_lote', '<', now()->startOfDay());
+                    });
+                    break;
+                case 'bajo_stock':
+                    $query->whereHas('ingresoProducto', function($q) {
+                        $q->whereColumn('cantidad_restante', '<=', 'stock_minimo')
+                          ->where('cantidad_restante', '>', 0);
+                    });
+                    break;
+            }
+        }
+
+        // Filtro por búsqueda (nombre o código)
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', '%' . $search . '%')
@@ -45,18 +88,164 @@ class ProductoController extends Controller
             $query->where('subcategoria_id', $subcategoriaId);
         }
 
-        $productos = $query->orderBy('created_at', $orden)->paginate(12);
-        
-        // Cargar categorías para el select de filtro
-        $categorias = Categoria::orderBy('nombre')->get();
-        // Si hay categoría seleccionada, cargar subcategorías para mantener el filtro
-        $subcategorias = $categoriaId ? \App\Models\Subcategoria::where('categoria_id', $categoriaId)->get() : collect();
+        // Ordenamiento
+        $query->orderBy('created_at', $orden);
 
-        return view('administrador.productos.index', compact('productos', 'search', 'categorias', 'subcategorias', 'categoriaId', 'subcategoriaId', 'orden'));
+        $productos = $query->paginate(12)->withQueryString();
+        
+        // Agregar stock agregado y recomendaciones de precio
+        $productos->getCollection()->transform(function($producto) {
+            // Sumar stock de todos los lotes con el mismo nombre
+            $producto->stock_total = IngresoProducto::where('nombre_producto', $producto->nombre)->sum('cantidad_restante');
+            
+            // Obtener el último lote para comparar costos
+            $ultimoLote = IngresoProducto::where('nombre_producto', $producto->nombre)
+                ->orderBy('fecha_ingreso', 'desc')
+                ->first();
+            
+            $producto->recomendar_cambio_precio = false;
+            $producto->costo_ultimo_lote = 0;
+            
+            if ($ultimoLote && $ultimoLote->cantidad_inicial > 0) {
+                $costoUnitario = $ultimoLote->costo_total / $ultimoLote->cantidad_inicial;
+                $producto->costo_ultimo_lote = $costoUnitario;
+                
+                // Si el margen es muy bajo o el costo cambió significativamente, recomendar cambio
+                // Asumimos un margen ideal del 20% sobre el costo
+                if (abs($producto->precio_venta_unitario - ($costoUnitario * 1.2)) > 1) {
+                    $producto->recomendar_cambio_precio = true;
+                }
+            }
+
+            // Encontrar la fecha de vencimiento más próxima de todos sus lotes
+            $producto->fecha_vencimiento_proxima = IngresoProducto::where('nombre_producto', $producto->nombre)
+                ->where('fecha_vencimiento_lote', '>', now())
+                ->min('fecha_vencimiento_lote');
+            
+            return $producto;
+        });
+        
+        $categorias = Categoria::orderBy('nombre')->get();
+        
+        // Cargar subcategorías solo si hay una categoría seleccionada
+        $subcategorias = $categoriaId 
+            ? Subcategoria::where('categoria_id', $categoriaId)->orderBy('nombre')->get() 
+            : collect();
+
+        return view('administrador.productos.index', compact(
+            'productos', 'categorias', 'subcategorias', 
+            'search', 'categoriaId', 'subcategoriaId', 'orden', 'stats', 'filtroEstado'
+        ));
     }
 
     /**
-     * Busca proveedores mediante AJAX.
+     * Muestra el formulario para crear un producto a partir de un ingreso.
+     */
+    public function create(Request $request): View
+    {
+        $ingresoId = $request->get('ingreso_id');
+        $ingreso = null;
+        
+        if ($ingresoId) {
+            $ingreso = IngresoProducto::findOrFail($ingresoId);
+        }
+
+        $categorias = Categoria::with('subcategorias')->orderBy('nombre')->get();
+        
+        return view('administrador.productos.create', compact('ingreso', 'categorias'));
+    }
+
+    /**
+     * Almacena un nuevo producto.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ingreso_producto_id' => 'required|exists:ingresos_productos,id',
+            'subcategoria_id' => 'required|exists:subcategorias,id',
+            'nombre' => 'required|string|max:255',
+            'precio_venta_unitario' => 'required|numeric|min:0',
+            'codigo' => 'nullable|string|max:255|unique:productos,codigo',
+            'imagen' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('imagen')) {
+            $validated['imagen'] = $request->file('imagen')->store('productos', 'public');
+        }
+
+        Producto::create($validated);
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto registrado correctamente.');
+    }
+
+    /**
+     * Muestra el formulario de edición.
+     */
+    public function edit(Producto $producto): View
+    {
+        $categorias = Categoria::with('subcategorias')->orderBy('nombre')->get();
+        $ingreso = $producto->ingresoProducto;
+
+        // Buscar el último ingreso para este producto para recomendar precio
+        $ultimoIngreso = IngresoProducto::where('nombre_producto', $producto->nombre)
+            ->orderBy('fecha_ingreso', 'desc')
+            ->first();
+
+        $recomendacion = null;
+        if ($ultimoIngreso && $ultimoIngreso->cantidad_inicial > 0) {
+            $costoUnitario = $ultimoIngreso->costo_total / $ultimoIngreso->cantidad_inicial;
+            // Recomendamos si el margen actual se aleja del 20% sobre el último costo
+            if (abs($producto->precio_venta_unitario - ($costoUnitario * 1.2)) > 1) {
+                $recomendacion = [
+                    'costo' => $costoUnitario,
+                    'precio_sugerido' => $costoUnitario * 1.2
+                ];
+            }
+        }
+
+        return view('administrador.productos.edit', compact('producto', 'categorias', 'ingreso', 'ultimoIngreso', 'recomendacion'));
+    }
+
+    /**
+     * Actualiza el producto.
+     */
+    public function update(Request $request, Producto $producto): RedirectResponse
+    {
+        $validated = $request->validate([
+            'subcategoria_id' => 'required|exists:subcategorias,id',
+            'nombre' => 'required|string|max:255',
+            'precio_venta_unitario' => 'required|numeric|min:0',
+            'codigo' => 'nullable|string|max:255|unique:productos,codigo,' . $producto->id,
+            'imagen' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('imagen')) {
+            if ($producto->imagen) {
+                Storage::disk('public')->delete($producto->imagen);
+            }
+            $validated['imagen'] = $request->file('imagen')->store('productos', 'public');
+        }
+
+        $producto->update($validated);
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto actualizado correctamente.');
+    }
+
+    /**
+     * Elimina el producto.
+     */
+    public function destroy(Producto $producto): RedirectResponse
+    {
+        $producto->delete();
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto eliminado correctamente.');
+    }
+
+    /**
+     * Busca proveedores mediante AJAX (mantenido por compatibilidad si es necesario en otras vistas).
      */
     public function buscarAjax(Request $request): JsonResponse
     {
@@ -74,205 +263,106 @@ class ProductoController extends Controller
     }
 
     /**
-     * Muestra la vista de empresas/proveedores con sus productos.
+     * Muestra la vista de empresas/proveedores (mantenido por compatibilidad).
      */
     public function empresas(Request $request): View
     {
+        $gestionPor = $request->get('gestion_por', 'empresas');
         $search = $request->get('search');
-        $sort = $request->get('sort', 'desc'); // desc = más reciente, asc = más antiguo
+        $sort = $request->get('sort', 'desc');
 
-        // Query base
-        $query = Proveedor::with(['ingresos' => function ($q) {
-            $q->orderBy('fecha_ingreso', 'desc');
-        }]);
+        // Variables para la vista de productos (lotes)
+        $ingresos = collect();
+        $proveedores = collect();
 
-        // Subquery para ordenar por fecha del último lote
-        $query->addSelect(['ultimo_lote_fecha' => IngresoProducto::select('fecha_ingreso')
-            ->whereColumn('proveedor_id', 'proveedores.id')
-            ->orderBy('fecha_ingreso', 'desc')
-            ->limit(1)
-        ]);
-
-        if ($search) {
-            $query->where('nombre_empresa', 'like', '%' . $search . '%');
-        }
-
-        // Ordenar por la fecha del último lote
-        $query->orderBy('ultimo_lote_fecha', $sort);
-
-        // Paginación de 10
-        $proveedores = $query->paginate(10);
-
-        // Asegurar que mantenemos los parámetros en la paginación
-        $proveedores->appends(['search' => $search, 'sort' => $sort]);
-
-        return view('administrador.productos.empresas', compact('proveedores', 'search', 'sort'));
-    }
-
-    /**
-     * Muestra el formulario para crear un nuevo producto.
-     */
-    public function create(Request $request): View
-    {
-        $ingresoId = $request->get('ingreso_id');
-        $ingreso = null;
-        
-        if ($ingresoId) {
-            $ingreso = IngresoProducto::find($ingresoId);
+        if ($gestionPor === 'productos') {
+            $nombresProductosExistentes = Producto::pluck('nombre')->toArray();
             
-            // Verificar si ya existe un producto para este lote
-            if ($ingreso) {
-                $productoExistente = \App\Models\Producto::where('ingreso_producto_id', $ingresoId)->first();
-                if ($productoExistente) {
-                    // Redirigir con mensaje de error si ya existe un producto
-                    return redirect()->route('productos.index')
-                        ->with('error', 'Ya existe un producto para este lote. No se puede crear uno nuevo.');
+            $query = IngresoProducto::whereDoesntHave('productoDetalle')
+                ->whereNotIn('nombre_producto', $nombresProductosExistentes)
+                ->with('proveedor');
+
+            // Filtros de búsqueda (similares a IngresoProductoController)
+            if ($request->filled('nombre_producto')) {
+                $query->where('nombre_producto', 'like', '%' . $request->nombre_producto . '%');
+            }
+
+            if ($request->filled('codigo_lote')) {
+                $query->where('codigo_lote', 'like', '%' . $request->codigo_lote . '%');
+            }
+
+            if ($request->filled('filtro_periodo')) {
+                $filtro = $request->filtro_periodo;
+                $hoy = \Carbon\Carbon::now()->startOfDay();
+
+                switch ($filtro) {
+                    case 'esta_semana':
+                        $query->whereBetween('fecha_ingreso', [$hoy->clone()->startOfWeek(), $hoy->clone()->endOfWeek()]);
+                        break;
+                    case 'este_mes':
+                        $query->whereBetween('fecha_ingreso', [$hoy->clone()->startOfMonth(), $hoy->clone()->endOfMonth()]);
+                        break;
+                    case 'hace_2_meses':
+                        $query->whereBetween('fecha_ingreso', [$hoy->clone()->subMonths(2)->startOfMonth(), $hoy->clone()->endOfMonth()]);
+                        break;
+                    case 'hace_3_meses':
+                        $query->whereBetween('fecha_ingreso', [$hoy->clone()->subMonths(3)->startOfMonth(), $hoy->clone()->endOfMonth()]);
+                        break;
+                    case 'hace_1_año':
+                        $query->whereBetween('fecha_ingreso', [$hoy->clone()->subYear(), $hoy]);
+                        break;
                 }
             }
-        }
 
-        // Obtener todas las categorías
-        $categorias = Categoria::with('subcategorias')->get();
-        
-        // Obtener todas las subcategorías (para compatibilidad con el código existente)
-        $subcategorias = \App\Models\Subcategoria::all();
-
-        return view('administrador.productos.create', compact('ingreso', 'subcategorias', 'categorias'));
-    }
-
-    /**
-     * Almacena un nuevo producto en la base de datos.
-     */
-    public function store(Request $request)
-    {
-        // Validación de los datos - todos los campos son obligatorios excepto código
-        $validatedData = $request->validate([
-            'ingreso_producto_id' => 'required|exists:ingresos_productos,id',
-            'categoria_id' => 'required|exists:categorias,id',
-            'subcategoria_id' => 'required|exists:subcategorias,id',
-            'codigo' => 'nullable|string|unique:productos,codigo',
-            'nombre' => 'required|string|max:255',
-            'precio_venta_unitario' => 'required|numeric|min:0',
-            'imagen' => 'required|image|max:10240', // Max 10MB y ahora es obligatorio
-        ], [
-            'categoria_id.required' => 'Debe seleccionar una categoría',
-            'subcategoria_id.required' => 'Debe seleccionar una subcategoría',
-            'imagen.required' => 'Debe subir una imagen para el producto',
-            'imagen.image' => 'El archivo debe ser una imagen',
-            'imagen.max' => 'La imagen no puede ser mayor a 10MB',
-        ]);
-
-        // Verificar si ya existe un producto para este lote (ingreso)
-        $productoExistente = \App\Models\Producto::where('ingreso_producto_id', $validatedData['ingreso_producto_id'])->first();
-
-        if ($productoExistente) {
-            return back()->withInput()->withErrors(['error' => 'Producto del lote existente. No se puede crear uno nuevo.']);
-        }
-
-        try {
-            $producto = new \App\Models\Producto();
-            $producto->ingreso_producto_id = $validatedData['ingreso_producto_id'];
-            $producto->subcategoria_id = $validatedData['subcategoria_id'];
-            $producto->codigo = $validatedData['codigo'];
-            $producto->nombre = $validatedData['nombre'];
-            $producto->precio_venta_unitario = $validatedData['precio_venta_unitario'];
-
-            // Manejo de la subida de imagen
-            if ($request->hasFile('imagen')) {
-                // Generar un nombre único para la imagen usando timestamp y slug del nombre
-                $imageName = time() . '_' . Str::slug($validatedData['nombre']) . '.' . $request->file('imagen')->getClientOriginalExtension();
-                
-                // Guardar la imagen en storage/app/public/productos
-                $path = $request->file('imagen')->storeAs('productos', $imageName, 'public');
-                $producto->imagen = $path;
-                
-                // Crear una versión thumbnail si es necesario
-                // Esto es opcional, pero útil para optimizar la carga
-                // $thumbnailPath = 'thumbnails/' . $imageName;
-                // Image::make($request->file('imagen'))->resize(300, 300)->save(storage_path('app/public/' . $thumbnailPath));
+            if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
+                $query->whereBetween('fecha_ingreso', [
+                    \Carbon\Carbon::createFromFormat('Y-m-d', $request->fecha_inicio)->startOfDay(),
+                    \Carbon\Carbon::createFromFormat('Y-m-d', $request->fecha_fin)->endOfDay()
+                ]);
             }
 
-            $producto->save();
+            $ingresos = $query->orderBy('fecha_ingreso', $sort)
+                ->paginate(12)
+                ->withQueryString();
+        } else {
+            // Lógica actual para gestionar por empresas
+            $query = Proveedor::with(['ingresos' => function ($q) {
+                $q->orderBy('fecha_ingreso', 'desc')->limit(1);
+            }]);
 
-            return redirect()->route('productos.index')->with('success', 'Producto creado exitosamente.');
-
-        } catch (\Exception $e) {
-            // Manejo de excepciones
-            return back()->withInput()->withErrors(['error' => 'Error al registrar el producto: ' . $e->getMessage()]);
-        }
-    }
-    
-    /**
-     * Muestra el formulario para editar un producto.
-     */
-    public function edit(\App\Models\Producto $producto): View
-    {
-        $ingreso = $producto->ingresoProducto; 
-        $categorias = Categoria::with('subcategorias')->get();
-        $subcategorias = \App\Models\Subcategoria::all();
-
-        return view('administrador.productos.edit', compact('producto', 'ingreso', 'categorias', 'subcategorias'));
-    }
-
-    /**
-     * Actualiza un producto en la base de datos.
-     */
-    public function update(Request $request, \App\Models\Producto $producto)
-    {
-        // Validación
-        $validatedData = $request->validate([
-            'categoria_id' => 'required|exists:categorias,id',
-            'subcategoria_id' => 'required|exists:subcategorias,id',
-            'codigo' => 'nullable|string|unique:productos,codigo,' . $producto->id,
-            'nombre' => 'required|string|max:255',
-            'precio_venta_unitario' => 'required|numeric|min:0',
-            'imagen' => 'nullable|image|max:10240',
-        ], [
-            'categoria_id.required' => 'Debe seleccionar una categoría',
-            'subcategoria_id.required' => 'Debe seleccionar una subcategoría',
-            'imagen.image' => 'El archivo debe ser una imagen',
-            'imagen.max' => 'La imagen no puede ser mayor a 10MB',
-        ]);
-
-        try {
-            $producto->subcategoria_id = $validatedData['subcategoria_id'];
-            $producto->codigo = $validatedData['codigo'];
-            $producto->nombre = $validatedData['nombre'];
-            $producto->precio_venta_unitario = $validatedData['precio_venta_unitario'];
-
-            if ($request->hasFile('imagen')) {
-                // Eliminar imagen anterior si existe
-                if ($producto->imagen && Storage::disk('public')->exists($producto->imagen)) {
-                    Storage::disk('public')->delete($producto->imagen);
-                }
-
-                $imageName = time() . '_' . Str::slug($validatedData['nombre']) . '.' . $request->file('imagen')->getClientOriginalExtension();
-                $path = $request->file('imagen')->storeAs('productos', $imageName, 'public');
-                $producto->imagen = $path;
+            if ($search) {
+                $query->where('nombre_empresa', 'like', '%' . $search . '%');
             }
 
-            $producto->save();
-
-            return redirect()->route('productos.index')->with('success', 'Producto actualizado exitosamente.');
-
-        } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => 'Error al actualizar el producto: ' . $e->getMessage()]);
+            $proveedores = $query
+                ->orderBy('created_at', $sort)
+                ->paginate(10)
+                ->withQueryString();
         }
+
+        return view('administrador.productos.empresas', compact(
+            'proveedores', 'ingresos', 'search', 'sort', 'gestionPor'
+        ));
     }
 
     /**
-     * Obtiene las subcategorías de una categoría específica mediante AJAX.
+     * Muestra la lista de productos eliminados.
      */
-    public function getSubcategorias($categoriaId): JsonResponse
+    public function eliminados(): View
     {
-        $categoria = Categoria::find($categoriaId);
-        
-        if (!$categoria) {
-            return response()->json([]);
-        }
-        
-        $subcategorias = $categoria->subcategorias()->get(['id', 'nombre']);
-        
-        return response()->json($subcategorias);
+        $eliminados = Producto::onlyTrashed()->with(['subcategoria.categoria', 'ingresoProducto'])->orderBy('deleted_at', 'desc')->get();
+        return view('administrador.productos.eliminados', compact('eliminados'));
+    }
+
+    /**
+     * Restaura un producto eliminado.
+     */
+    public function restore($id): RedirectResponse
+    {
+        $producto = Producto::withTrashed()->findOrFail($id);
+        $producto->restore();
+
+        return redirect()->route('productos.eliminados')
+            ->with('success', 'Producto restaurado correctamente.');
     }
 }

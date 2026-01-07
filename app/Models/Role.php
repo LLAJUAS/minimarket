@@ -28,4 +28,9 @@ class Role extends Model
         // Esta es la relación inversa a la del modelo User.
         return $this->belongsToMany(User::class);
     }
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class);
+    }
 }

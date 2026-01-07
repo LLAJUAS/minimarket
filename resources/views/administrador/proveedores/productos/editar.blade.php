@@ -45,7 +45,7 @@
 
         {{-- Formulario --}}
         <div class="form-card">
-            <form action="{{ route('ingresos.update', $ingresoProducto->id) }}" method="POST">
+            <form action="{{ route('ingresos.update', $ingresoProducto->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -92,7 +92,7 @@
                             </div>
 
                             {{-- Nombre del Producto --}}
-                            <div class="form-group full-width">
+                            <div class="form-group">
                                 <label for="nombre_producto" class="form-label">
                                     Nombre del Producto <span class="required">*</span>
                                 </label>
@@ -116,10 +116,57 @@
                                 @enderror
                             </div>
 
-                            {{-- Cantidad y Costo --}}
+                            {{-- Código de Lote --}}
+                            <div class="form-group">
+                                <label for="codigo_lote" class="form-label">
+                                    Código de Lote
+                                </label>
+                                <div class="input-wrapper">
+                                    <div class="input-icon">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        id="codigo_lote" 
+                                        name="codigo_lote" 
+                                        value="{{ old('codigo_lote', $ingresoProducto->codigo_lote) }}" 
+                                        placeholder="Ej: LOT-2023-001" 
+                                        class="form-input @error('codigo_lote') error @enderror">
+                                </div>
+                                @error('codigo_lote')
+                                    <p class="error-message">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Unidad de Medida --}}
+                            <div class="form-group">
+                                <label for="unidad_medida" class="form-label">
+                                    Unidad de Medida <span class="required">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <div class="input-icon">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 12h12l3-12H3z"></path>
+                                        </svg>
+                                    </div>
+                                    <select id="unidad_medida" name="unidad_medida" required class="form-input form-select">
+                                        <option value="Unidad" {{ old('unidad_medida', $ingresoProducto->unidad_medida) == 'Unidad' ? 'selected' : '' }}>Unidad (pieza)</option>
+                                        <option value="Kilogramos" {{ old('unidad_medida', $ingresoProducto->unidad_medida) == 'Kilogramos' ? 'selected' : '' }}>Kilogramos (Kg)</option>
+                                        <option value="Gramos" {{ old('unidad_medida', $ingresoProducto->unidad_medida) == 'Gramos' ? 'selected' : '' }}>Gramos (g)</option>
+                                        <option value="Litros" {{ old('unidad_medida', $ingresoProducto->unidad_medida) == 'Litros' ? 'selected' : '' }}>Litros (L)</option>
+                                    </select>
+                                </div>
+                                @error('unidad_medida')
+                                    <p class="error-message">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Stock Inicial --}}
                             <div class="form-group">
                                 <label for="cantidad_inicial" class="form-label">
-                                    Cantidad Inicial <span class="required">*</span>
+                                    Stock inicial (total) <span class="required">*</span>
                                 </label>
                                 <div class="input-wrapper">
                                     <div class="input-icon">
@@ -138,6 +185,41 @@
                                         class="form-input @error('cantidad_inicial') error @enderror">
                                 </div>
                                 @error('cantidad_inicial')
+                                    <p class="error-message">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Stock Mínimo --}}
+                            <div class="form-group">
+                                <label for="stock_minimo" class="form-label flex items-center gap-2">
+                                    Stock mínimo <span class="required">*</span>
+                                    <div class="relative group cursor-help">
+                                        <svg class="w-4 h-4 text-gray-400 hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 text-center shadow-xl">
+                                            Colocar la cantidad minima del producto para alertar que se requiere reestockear
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <div class="input-wrapper">
+                                    <div class="input-icon">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="number" 
+                                        id="stock_minimo" 
+                                        name="stock_minimo" 
+                                        value="{{ old('stock_minimo', $ingresoProducto->stock_minimo) }}" 
+                                        required 
+                                        min="0" 
+                                        placeholder="Ej: 10" 
+                                        class="form-input @error('stock_minimo') error @enderror">
+                                </div>
+                                @error('stock_minimo')
                                     <p class="error-message">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -245,6 +327,32 @@
                                         class="form-input @error('numero_factura') error @enderror">
                                 </div>
                                 @error('numero_factura')
+                                    <p class="error-message">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Foto de la Factura --}}
+                            <div class="form-group">
+                                <label for="foto_factura" class="form-label">
+                                    Foto de la Factura
+                                </label>
+                                <div class="input-wrapper">
+                                    <div class="input-icon">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="file" 
+                                        id="foto_factura" 
+                                        name="foto_factura" 
+                                        accept="image/*"
+                                        class="form-input @error('foto_factura') error @enderror">
+                                </div>
+                                @if($ingresoProducto->foto_factura)
+                                    <p class="mt-2 text-xs text-gray-500">Ya existe una factura: <a href="{{ asset('storage/' . $ingresoProducto->foto_factura) }}" target="_blank" class="text-blue-600 hover:underline">Ver actual</a></p>
+                                @endif
+                                @error('foto_factura')
                                     <p class="error-message">{{ $message }}</p>
                                 @enderror
                             </div>

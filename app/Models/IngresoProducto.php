@@ -18,12 +18,16 @@ class IngresoProducto extends Model
     protected $fillable = [
         'proveedor_id',
         'nombre_producto',
+        'codigo_lote',
+        'unidad_medida',
         'cantidad_inicial',
         'cantidad_restante',
+        'stock_minimo',
         'costo_total',
         'fecha_ingreso',
-        'fecha_vencimiento_lote', // 👈 NUEVO
+        'fecha_vencimiento_lote',
         'numero_factura',
+        'foto_factura',
     ];
 
     /**
@@ -31,9 +35,10 @@ class IngresoProducto extends Model
      */
     protected $casts = [
         'fecha_ingreso' => 'date',
-        'fecha_vencimiento_lote' => 'date', // 👈 NUEVO
-        'cantidad_inicial' => 'integer',
-        'cantidad_restante' => 'integer',
+        'fecha_vencimiento_lote' => 'date',
+        'cantidad_inicial' => 'float',
+        'cantidad_restante' => 'float',
+        'stock_minimo' => 'float',
         'costo_total' => 'decimal:2',
     ];
 

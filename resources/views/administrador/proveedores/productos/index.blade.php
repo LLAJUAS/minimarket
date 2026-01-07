@@ -4,242 +4,384 @@
 @section('title', 'Productos de ' . $proveedor->nombre_empresa)
 
 @section('content')
-<div class="min-h-screen bg-slate-50 p-4 md:p-6 lg:p-8">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fef7ec',
+                            100: '#fdecd3',
+                            200: '#fbd6a5',
+                            300: '#f9ba6d',
+                            400: '#F2A922',
+                            500: '#F28705',
+                            600: '#d96d04',
+                            700: '#b45107',
+                            800: '#92400d',
+                            900: '#78350f',
+                        },
+                        accent: {
+                            50: '#f0f9e8',
+                            100: '#ddf2c7',
+                            200: '#bfe592',
+                            300: '#9dd458',
+                            400: '#6fb82f',
+                            500: '#3B7312',
+                            600: '#2f5d0d',
+                            700: '#254809',
+                            800: '#1d3607',
+                            900: '#162d05',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(242, 135, 5, 0.2);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #F28705 0%, #F2A922 100%);
+        }
+        
+        .accent-gradient {
+            background: linear-gradient(135deg, #3B7312 0%, #6fb82f 100%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 min-h-screen">
+
+<div class="min-h-screen p-4 md:p-8">
     <div class="max-w-7xl mx-auto space-y-6">
 
         {{-- Breadcrumb --}}
         <nav class="flex items-center space-x-2 text-sm">
-            <a href="{{ route('proveedores') }}" class="text-gray-500 hover:text-green-600 transition-colors">
-                Proveedores
+            <a href="{{ route('proveedores') }}" class="text-gray-500 hover:text-primary-600 transition-colors">
+                <i class="fas fa-truck mr-1"></i> Proveedores
             </a>
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
+            <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
             <span class="text-gray-900 font-medium">{{ $proveedor->nombre_empresa }}</span>
         </nav>
 
-        {{-- Cabecera --}}
-        <div class="card-elegant">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <div class="space-y-3">
-                    <div class="flex items-center gap-3">
-                        <div class="provider-badge">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">{{ $proveedor->nombre_empresa }}</h1>
-                            <p class="text-gray-600 mt-1">Gestiona los ingresos y lotes de este proveedor</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="badge-count">
-                            <span class="count-dot"></span>
-                            {{ $ingresos->count() }} {{ $ingresos->count() === 1 ? 'Producto' : 'Productos' }}
-                        </span>
-                    </div>
+        {{-- Header --}}
+        <div class="mb-8">
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-building text-white text-xl"></i>
                 </div>
-
-                <a href="{{ route('ingresos.create') }}?proveedor_id={{ $proveedor->id }}" class="btn-primary">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ $proveedor->nombre_empresa }}</h1>
+                    <p class="text-gray-500 text-sm">Gestiona los ingresos y lotes de este proveedor</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between mt-4">
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-accent-50 to-accent-100 rounded-full border-2 border-accent-300">
+                    <span class="w-2 h-2 bg-accent-500 rounded-full animate-pulse"></span>
+                    <span class="text-sm font-bold text-accent-700">{{ $ingresos->count() }} {{ $ingresos->count() === 1 ? 'Producto' : 'Productos' }}</span>
+                </div>
+                
+                <a href="{{ route('ingresos.create') }}?proveedor_id={{ $proveedor->id }}" 
+                   class="inline-flex items-center gap-2 px-6 py-3 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                    <i class="fas fa-plus"></i>
                     Registrar nuevo lote
                 </a>
             </div>
         </div>
 
-        {{-- Mensaje de Éxito --}}
+        {{-- Success Message --}}
         @if(session('success'))
-            <div class="success-message">
-                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                </svg>
-                <p>{{ session('success') }}</p>
+            <div class="flex items-center gap-3 p-4 bg-accent-50 border-l-4 border-accent-500 rounded-xl shadow-sm">
+                <i class="fas fa-check-circle text-accent-600 text-xl"></i>
+                <p class="text-accent-800 font-medium">{{ session('success') }}</p>
             </div>
         @endif
 
-     {{-- Filtros de Búsqueda --}}
-<div class="filters-card">
-    <form method="GET" action="{{ route('proveedores.productos.index', $proveedor->id) }}" class="space-y-4">
-        <div class="filters-header">
-            <h3 class="filters-title">Filtrar lotes</h3>
-            <a href="{{ route('proveedores.productos.index', $proveedor->id) }}" class="btn-reset-filters">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                    </path>
-                </svg>
-                Limpiar Filtros
+        {{-- Stats Cards --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {{-- Total Products --}}
+            <a href="{{ route('proveedores.productos.index', ['proveedor' => $proveedor->id, 'filtro_estado' => 'todos']) }}" 
+               class="glass-effect rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all {{ request('filtro_estado') == 'todos' || !request('filtro_estado') ? 'ring-2 ring-primary-500' : '' }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-cubes text-primary-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Total Productos</p>
+                        <h4 class="text-2xl font-bold text-gray-900">{{ $stats['total_productos'] }}</h4>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Próximos a Vencer --}}
+            <a href="{{ route('proveedores.productos.index', ['proveedor' => $proveedor->id, 'filtro_estado' => 'proximos_vencer']) }}" 
+               class="glass-effect rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all {{ request('filtro_estado') == 'proximos_vencer' ? 'ring-2 ring-yellow-500' : '' }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 bg-yellow-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Próximos a Vencer</p>
+                        <h4 class="text-2xl font-bold text-gray-900">{{ $stats['proximos_vencer'] }}</h4>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Vencidos --}}
+            <a href="{{ route('proveedores.productos.index', ['proveedor' => $proveedor->id, 'filtro_estado' => 'vencidos']) }}" 
+               class="glass-effect rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all {{ request('filtro_estado') == 'vencidos' ? 'ring-2 ring-purple-500' : '' }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-purple-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Vencidos</p>
+                        <h4 class="text-2xl font-bold text-gray-900">{{ $stats['vencidos'] ?? 0 }}</h4>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Bajo Stock --}}
+            <a href="{{ route('proveedores.productos.index', ['proveedor' => $proveedor->id, 'filtro_estado' => 'bajo_stock']) }}" 
+               class="glass-effect rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all {{ request('filtro_estado') == 'bajo_stock' ? 'ring-2 ring-red-500' : '' }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-arrow-down text-red-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Bajo Stock</p>
+                        <h4 class="text-2xl font-bold text-gray-900">{{ $stats['bajo_stock'] }}</h4>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Eliminados --}}
+            <a href="{{ route('ingresos.deleted', $proveedor->id) }}" 
+               class="glass-effect rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-trash text-gray-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Eliminados</p>
+                        <h4 class="text-2xl font-bold text-gray-900">{{ $stats['eliminados'] ?? 0 }}</h4>
+                    </div>
+                </div>
             </a>
         </div>
 
-        <div class="filters-grid">
-            {{-- Búsqueda por nombre --}}
-            <div class="filter-group">
-                <label class="filter-label">Nombre del lote</label>
-                <input 
-                    type="text" 
-                    name="nombre_producto" 
-                    value="{{ request('nombre_producto') }}"
-                    placeholder="Buscar por nombre..."
-                    class="filter-input"
-                >
-            </div>
+        {{-- Filters --}}
+        <div class="glass-effect rounded-2xl p-6 shadow-lg">
+            <form method="GET" action="{{ route('proveedores.productos.index', $proveedor->id) }}" class="space-y-4">
+                <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900"><i class="fas fa-filter mr-2"></i>Filtrar lotes</h3>
+                    <a href="{{ route('proveedores.productos.index', $proveedor->id) }}" 
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-bold rounded-xl border-2 border-red-200 hover:bg-red-100 transition-all">
+                        <i class="fas fa-redo"></i>
+                        Limpiar Filtros
+                    </a>
+                </div>
 
-            {{-- Filtro por período --}}
-            <div class="filter-group">
-                <label class="filter-label">Período</label>
-                <select name="filtro_periodo" class="filter-select">
-                    <option value="">Todos los períodos</option>
-                    <option value="esta_semana" {{ request('filtro_periodo') === 'esta_semana' ? 'selected' : '' }}>Esta Semana</option>
-                    <option value="este_mes" {{ request('filtro_periodo') === 'este_mes' ? 'selected' : '' }}>Este Mes</option>
-                    <option value="hace_2_meses" {{ request('filtro_periodo') === 'hace_2_meses' ? 'selected' : '' }}>Últimos 2 Meses</option>
-                    <option value="hace_3_meses" {{ request('filtro_periodo') === 'hace_3_meses' ? 'selected' : '' }}>Últimos 3 Meses</option>
-                    <option value="hace_1_año" {{ request('filtro_periodo') === 'hace_1_año' ? 'selected' : '' }}>Último Año</option>
-                </select>
-            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @if(request('filtro_estado'))
+                        <input type="hidden" name="filtro_estado" value="{{ request('filtro_estado') }}">
+                    @endif
 
-            {{-- Separador --}}
-            <div class="col-span-full">
-                <p class="filter-label">Buscar por rango de ingreso</p>
-                <hr>
-            </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Nombre del lote</label>
+                        <input type="text" 
+                               name="nombre_producto" 
+                               value="{{ request('nombre_producto') }}"
+                               placeholder="Buscar por nombre..."
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none">
+                    </div>
 
-            {{-- Rango de fechas --}}
-            <div class="filter-group">
-                <label class="filter-label">Fecha Inicio</label>
-                <input 
-                    type="date" 
-                    name="fecha_inicio" 
-                    value="{{ request('fecha_inicio') }}"
-                    class="filter-input"
-                >
-            </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Código de Lote</label>
+                        <input type="text" 
+                               name="codigo_lote" 
+                               value="{{ request('codigo_lote') }}"
+                               placeholder="Ej: LOTE-001"
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none">
+                    </div>
 
-            <div class="filter-group">
-                <label class="filter-label">Fecha Fin</label>
-                <input 
-                    type="date" 
-                    name="fecha_fin" 
-                    value="{{ request('fecha_fin') }}"
-                    class="filter-input"
-                >
-            </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Período</label>
+                        <select name="filtro_periodo" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none">
+                            <option value="">Todos los períodos</option>
+                            <option value="esta_semana" {{ request('filtro_periodo') === 'esta_semana' ? 'selected' : '' }}>Esta Semana</option>
+                            <option value="este_mes" {{ request('filtro_periodo') === 'este_mes' ? 'selected' : '' }}>Este Mes</option>
+                            <option value="hace_2_meses" {{ request('filtro_periodo') === 'hace_2_meses' ? 'selected' : '' }}>Últimos 2 Meses</option>
+                            <option value="hace_3_meses" {{ request('filtro_periodo') === 'hace_3_meses' ? 'selected' : '' }}>Últimos 3 Meses</option>
+                            <option value="hace_1_año" {{ request('filtro_periodo') === 'hace_1_año' ? 'selected' : '' }}>Último Año</option>
+                        </select>
+                    </div>
 
-            {{-- Botón de búsqueda --}}
-            <div class="filter-group flex items-end">
-                <button type="submit" class="btn-filter">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
-                        </path>
-                    </svg>
-                    Filtrar
-                </button>
-            </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Fecha Inicio</label>
+                        <input type="date" 
+                               name="fecha_inicio" 
+                               value="{{ request('fecha_inicio') }}"
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Fecha Fin</label>
+                        <input type="date" 
+                               name="fecha_fin" 
+                               value="{{ request('fecha_fin') }}"
+                               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none">
+                    </div>
+
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full py-3 px-4 accent-gradient text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                            <i class="fas fa-search mr-2"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
-</div>
 
-        {{-- Lista de Productos --}}
+        {{-- Product List --}}
         <div class="space-y-4">
             @forelse ($ingresos as $ingreso)
-                <div class="product-card">
-                    <div class="product-content">
+                <div class="product-card glass-effect rounded-2xl p-6 shadow-lg border border-primary-100">
+                    <div class="flex flex-col lg:flex-row gap-6">
                         
-                        {{-- Información del Producto --}}
-                        <div class="product-info">
-                            <div class="product-header">
-                                <div class="product-icon">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                                    </svg>
+                        {{-- Product Info --}}
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 pb-4 border-b border-gray-200 mb-4">
+                                <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-box text-primary-600 text-xl"></i>
                                 </div>
-                                <h3 class="product-title">{{ $ingreso->nombre_producto }}</h3>
-                            </div>
-
-                            <div class="product-grid">
-                                <div class="info-item">
-                                    <div class="info-icon">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="info-label">Cantidad Inicial</p>
-                                        <p class="info-value">{{ number_format($ingreso->cantidad_inicial, 0, ',', '.') }} unid.</p>
-                                    </div>
-                                </div>
-
-                                <div class="info-item">
-                                    <div class="info-icon stock-icon">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="info-label">Cantidad Restante</p>
-                                        <p class="info-value stock-value">{{ number_format($ingreso->cantidad_restante, 0, ',', '.') }} unid.</p>
-                                    </div>
-                                </div>
-
-                                <div class="info-item">
-                                    <div class="info-icon cost-icon">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="info-label">Costo Total</p>
-                                        <p class="info-value">Bs {{ number_format($ingreso->costo_total, 2, ',', '.') }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="info-item">
-                                    <div class="info-icon date-icon">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="info-label">Fecha Ingreso</p>
-                                        <p class="info-value">{{ $ingreso->fecha_ingreso->format('d/m/Y') }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="info-item">
-                                    <div class="info-icon date-icon">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="info-label">Fecha Vencimiento Lote</p>
-                                        <p class="info-value">
-                                            @if($ingreso->fecha_vencimiento_lote)
-                                                {{ $ingreso->fecha_vencimiento_lote->format('d/m/Y') }}
-                                            @else
-                                                <span class="text-gray-400">Sin especificar</span>
-                                            @endif
-                                        </p>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">{{ $ingreso->nombre_producto }}</h3>
+                                    <div class="flex flex-wrap gap-2 mt-1">
+                                        <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-lg">
+                                            <i class="fas fa-layer-group mr-1"></i>{{ $ingreso->total_lotes }} {{ $ingreso->total_lotes === 1 ? 'Lote' : 'Lotes' }}
+                                        </span>
+                                        @if($ingreso->reabastecido)
+                                            <span class="text-xs font-bold bg-accent-100 text-accent-700 px-2 py-1 rounded-lg">
+                                                <i class="fas fa-sync-alt mr-1"></i>Reabastecido
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Stock Inicial</p>
+                                    <p class="text-base font-semibold text-gray-900">{{ number_format($ingreso->cantidad_inicial, 0, ',', '.') }} {{ $ingreso->unidad_medida }}</p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Stock Total</p>
+                                    <p class="text-base font-semibold {{ $ingreso->tiene_bajo_stock ? 'text-red-600' : 'text-accent-600' }}">
+                                        {{ number_format($ingreso->cantidad_restante, 0, ',', '.') }} {{ $ingreso->unidad_medida }}
+                                        @if($ingreso->tiene_bajo_stock)
+                                            <span class="ml-2 px-2 py-0.5 text-[10px] bg-red-100 text-red-600 rounded-full font-bold uppercase animate-pulse">Atención</span>
+                                        @endif
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Costo Total</p>
+                                    <p class="text-base font-semibold text-gray-900">Bs {{ number_format($ingreso->costo_total, 2, ',', '.') }}</p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Stock Mínimo</p>
+                                    <p class="text-base font-semibold text-yellow-600">{{ number_format($ingreso->stock_minimo, 0, ',', '.') }} {{ $ingreso->unidad_medida }}</p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Fecha Ingreso</p>
+                                    <p class="text-base font-semibold text-gray-900">{{ $ingreso->fecha_ingreso->format('d/m/Y') }}</p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Fecha Vencimiento</p>
+                                    <p class="text-base font-semibold text-gray-900">
+                                        @if($ingreso->fecha_vencimiento_lote)
+                                            {{ $ingreso->fecha_vencimiento_lote->format('d/m/Y') }}
+                                        @else
+                                            <span class="text-gray-400">Sin especificar</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if($ingreso->tiene_bajo_stock)
+                                <div class="mt-4 flex flex-col sm:flex-row items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100 gap-4">
+                                    <div class="flex items-center gap-3 text-red-700">
+                                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                            <i class="fas fa-exclamation-triangle text-2xl animate-pulse"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold">¡Atención! Este producto necesita reabastecimiento</p>
+                                            <p class="text-xs opacity-80">El stock actual ha alcanzado o superado el límite mínimo.</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('ingresos.create', ['proveedor_id' => $proveedor->id, 'nombre_producto' => $ingreso->nombre_producto]) }}" 
+                                       class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 hover:shadow-xl transition-all">
+                                        <i class="fas fa-plus"></i>
+                                        Agregar nuevo stock
+                                    </a>
+                                </div>
+                            @endif
+
+                            @if($ingreso->recomendar_cambio_precio)
+                                <div class="mt-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                                        <i class="fas fa-lightbulb text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-amber-800">Recomendación de Precio</p>
+                                        <p class="text-xs text-amber-700">Se recomienda modificar el precio de venta (Costo del último stock: Bs {{ number_format($ingreso->costo_reabastecimiento, 2) }})</p>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
-                        {{-- Acciones --}}
-                        <div class="product-actions">
-                            <a href="{{ route('ingresos.edit', $ingreso->id) }}" class="btn-action btn-edit">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                                Editar
+                        {{-- Actions --}}
+                        <div class="flex flex-col gap-3 lg:w-48 lg:border-l lg:border-gray-200 lg:pl-6">
+                            <a href="{{ route('ingresos.edit', $ingreso->id) }}" 
+                               class="w-full py-3 px-4 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all text-center">
+                                <i class="fas fa-edit mr-2"></i>Editar
                             </a>
+
+                            <a href="{{ route('ingresos.show', $ingreso->id) }}" 
+                               class="w-full py-3 px-4 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:bg-blue-600 hover:shadow-xl transform hover:-translate-y-1 transition-all text-center">
+                                <i class="fas fa-layer-group mr-2"></i>Ver Lotes
+                            </a>
+
                             @if($ingreso->productoDetalle)
                                 <button type="button" 
-                                        class="btn-action btn-view"
+                                        class="w-full py-3 px-4 accent-gradient text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
                                         onclick="openProductModal('{{ $ingreso->productoDetalle->id }}',
                                                                 '{{ $ingreso->productoDetalle->nombre }}', 
                                                                 '{{ $ingreso->productoDetalle->codigo ?? 'Sin código' }}',
@@ -247,29 +389,21 @@
                                                                 '{{ $ingreso->productoDetalle->subcategoria->nombre ?? 'N/A' }}',
                                                                 '{{ number_format($ingreso->productoDetalle->precio_venta_unitario, 2) }}',
                                                                 '{{ $ingreso->productoDetalle->imagen ? asset('storage/' . $ingreso->productoDetalle->imagen) : '' }}')">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                    Ver Producto
+                                    <i class="fas fa-eye mr-2"></i>Ver Producto
                                 </button>
                             @else
-                                <a href="{{ route('productos.create', ['ingreso_id' => $ingreso->id]) }}" class="btn-action btn-edit">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                    Crear producto nuevo
+                                <a href="{{ route('productos.create', ['ingreso_id' => $ingreso->id]) }}" 
+                                   class="w-full py-3 px-4 accent-gradient text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all text-center">
+                                    <i class="fas fa-plus mr-2"></i>Crear producto
                                 </a>
                             @endif
+                        
                             <form action="{{ route('ingresos.destroy', $ingreso->id) }}" method="POST" class="w-full" 
                                   onsubmit="return confirm('¿Estás seguro de que quieres eliminar este ingreso?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn-action btn-delete">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                    Eliminar
+                                <button type="submit" class="w-full py-3 px-4 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                                    <i class="fas fa-trash mr-2"></i>Eliminar
                                 </button>
                             </form>
                         </div>
@@ -277,18 +411,15 @@
                     </div>
                 </div>
             @empty
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                        </svg>
+                <div class="glass-effect rounded-2xl p-16 text-center shadow-lg">
+                    <div class="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-inbox text-primary-500 text-4xl"></i>
                     </div>
-                    <h3 class="empty-title">No hay productos registrados</h3>
-                    <p class="empty-text">Este proveedor aún no tiene ingresos de productos</p>
-                    <a href="{{ route('ingresos.create') }}?proveedor_id={{ $proveedor->id }}" class="btn-primary mt-4">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">No hay productos registrados</h3>
+                    <p class="text-gray-500 mb-6">Este proveedor aún no tiene ingresos de productos</p>
+                    <a href="{{ route('ingresos.create') }}?proveedor_id={{ $proveedor->id }}" 
+                       class="inline-flex items-center gap-2 px-6 py-3 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                        <i class="fas fa-plus"></i>
                         Registrar Primer Producto
                     </a>
                 </div>
@@ -301,10 +432,8 @@
 {{-- Product View Modal --}}
 <div id="productModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {{-- Background overlay --}}
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeProductModal()"></div>
 
-        {{-- Modal panel --}}
         <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
@@ -314,26 +443,20 @@
                                 Detalle del Producto
                             </h3>
                             <button type="button" onclick="closeProductModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
-                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <i class="fas fa-times text-xl"></i>
                             </button>
                         </div>
                         
                         <div class="space-y-4">
-                            {{-- Image Container --}}
                             <div class="flex justify-center mb-6">
                                 <div id="modal-image-container" class="relative w-48 h-48 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                                     <img id="modal-image" src="" alt="Producto" class="w-full h-full object-cover">
                                     <div id="modal-no-image" class="absolute inset-0 flex items-center justify-center text-gray-400">
-                                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
+                                        <i class="fas fa-image text-6xl"></i>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Details Grid --}}
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <p class="text-sm font-medium text-gray-500">Nombre</p>
@@ -353,7 +476,7 @@
                                 </div>
                                 <div class="col-span-2">
                                     <p class="text-sm font-medium text-gray-500">Precio de Venta</p>
-                                    <p id="modal-precio" class="mt-1 text-xl text-green-600 font-bold"></p>
+                                    <p id="modal-precio" class="mt-1 text-xl text-accent-600 font-bold"></p>
                                 </div>
                             </div>
                         </div>
@@ -362,16 +485,13 @@
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
                 <button type="button" 
-                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-slate-600 text-base font-medium text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 sm:w-auto sm:text-sm"
+                        class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-gray-600 text-base font-medium text-white hover:bg-gray-700 focus:outline-none sm:w-auto sm:text-sm"
                         onclick="closeProductModal()">
                     Cerrar
                 </button>
                 <a id="modal-edit-btn" href="#"
-                   class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm">
-                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                    Editar
+                   class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none sm:w-auto sm:text-sm">
+                   <i class="fas fa-edit mr-2"></i>Editar
                 </a>
             </div>
         </div>
@@ -380,7 +500,6 @@
 
 <script>
     function openProductModal(id, nombre, codigo, categoria, subcategoria, precio, imageUrl) {
-        // Update edit button link
         const editBtn = document.getElementById('modal-edit-btn');
         editBtn.href = `/productos/${id}/editar`;
         document.getElementById('modal-nombre').textContent = nombre;
@@ -389,7 +508,6 @@
         document.getElementById('modal-subcategoria').textContent = subcategoria;
         document.getElementById('modal-precio').textContent = 'Bs ' + precio;
         
-        // Handle image
         const imgElement = document.getElementById('modal-image');
         const noImageElement = document.getElementById('modal-no-image');
         
@@ -402,11 +520,8 @@
             noImageElement.classList.remove('hidden');
         }
         
-        // Show modal
         const modal = document.getElementById('productModal');
         modal.classList.remove('hidden');
-        
-        // Prevent body scroll
         document.body.style.overflow = 'hidden';
     }
 
@@ -416,7 +531,6 @@
         document.body.style.overflow = '';
     }
 
-    // Close on escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeProductModal();
@@ -424,460 +538,4 @@
     });
 </script>
 
-<style>
-    /* Estilos base */
-    .card-elegant {
-        background: white;
-        border-radius: 1.25rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        padding: 2rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .provider-badge {
-        width: 3.5rem;
-        height: 3.5rem;
-        background: rgba(34, 197, 94, 0.1);
-        border-radius: 0.875rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgb(22, 163, 74);
-    }
-
-    .badge-count {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: rgba(34, 197, 94, 0.08);
-        color: rgb(21, 128, 61);
-        font-size: 0.875rem;
-        font-weight: 600;
-        border-radius: 9999px;
-        border: 1px solid rgba(34, 197, 94, 0.2);
-    }
-
-    .count-dot {
-        width: 0.5rem;
-        height: 0.5rem;
-        background: rgb(34, 197, 94);
-        border-radius: 9999px;
-        animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    @keyframes pulse-dot {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
-    }
-
-    .btn-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.875rem 1.75rem;
-        background: rgb(22, 163, 74);
-        color: white;
-        font-weight: 600;
-        border-radius: 0.875rem;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
-    }
-
-    .btn-primary:hover {
-        background: rgb(21, 128, 61);
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
-        transform: translateY(-1px);
-    }
-
-    /* Mensaje de éxito */
-    .success-message {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 1.25rem;
-        background: rgba(34, 197, 94, 0.08);
-        color: rgb(21, 128, 61);
-        border-left: 4px solid rgb(34, 197, 94);
-        border-radius: 0.875rem;
-        font-weight: 500;
-        animation: slide-in 0.3s ease-out;
-    }
-
-    @keyframes slide-in {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Tarjetas de productos */
-    .product-card {
-        background: white;
-        border-radius: 1.25rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-    }
-
-    .product-card:hover {
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        border-color: rgba(203, 213, 225, 0.8);
-        transform: translateY(-2px);
-    }
-
-    .product-content {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        padding: 1.5rem;
-    }
-
-    @media (min-width: 1280px) {
-        .product-content {
-            flex-direction: row;
-            justify-content: space-between;
-        }
-    }
-
-    .product-info {
-        flex: 1;
-    }
-
-    .product-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid rgb(243, 244, 246);
-        margin-bottom: 1.25rem;
-    }
-
-    .product-icon {
-        width: 2.5rem;
-        height: 2.5rem;
-        background: rgba(59, 130, 246, 0.1);
-        border-radius: 0.625rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgb(37, 99, 235);
-        flex-shrink: 0;
-    }
-
-    .product-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: rgb(17, 24, 39);
-        letter-spacing: -0.025em;
-    }
-
-    .product-grid {
-        display: grid;
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-        gap: 1.25rem;
-    }
-
-    @media (min-width: 640px) {
-        .product-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (min-width: 1024px) {
-        .product-grid {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-    }
-
-    .info-item {
-        display: flex;
-        align-items: start;
-        gap: 0.75rem;
-    }
-
-    .info-icon {
-        width: 2.25rem;
-        height: 2.25rem;
-        background: rgb(249, 250, 251);
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgb(107, 114, 128);
-        flex-shrink: 0;
-    }
-
-    .stock-icon {
-        background: rgba(34, 197, 94, 0.1);
-        color: rgb(22, 163, 74);
-    }
-
-    .cost-icon {
-        background: rgba(59, 130, 246, 0.1);
-        color: rgb(37, 99, 235);
-    }
-
-    .date-icon {
-        background: rgba(168, 85, 247, 0.1);
-        color: rgb(147, 51, 234);
-    }
-
-    .info-label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: rgb(107, 114, 128);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.25rem;
-    }
-
-    .info-value {
-        font-size: 0.9375rem;
-        font-weight: 600;
-        color: rgb(31, 41, 55);
-    }
-
-    .stock-value {
-        color: rgb(22, 163, 74);
-    }
-
-    /* Acciones */
-    .product-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        width: 100%;
-    }
-
-    @media (min-width: 1280px) {
-        .product-actions {
-            width: 10rem;
-            border-left: 1px solid rgb(243, 244, 246);
-            padding-left: 1.5rem;
-        }
-    }
-
-    .btn-action {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        font-weight: 600;
-        font-size: 0.875rem;
-        border-radius: 0.75rem;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
-    }
-
-    .btn-edit {
-        background: rgb(249, 115, 22);
-        color: white;
-        box-shadow: 0 1px 3px rgba(249, 115, 22, 0.3);
-    }
-
-    .btn-edit:hover {
-        background: rgb(234, 88, 12);
-        box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4);
-        transform: translateY(-1px);
-    }
-
-    .btn-view {
-        background: rgb(59, 130, 246);
-        color: white;
-        box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-view:hover {
-        background: rgb(37, 99, 235);
-        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
-        transform: translateY(-1px);
-    }
-    
-    .btn-delete {
-        background: rgb(220, 38, 38);
-        color: white;
-        box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
-    }
-
-    .btn-delete:hover {
-        background: rgb(185, 28, 28);
-        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
-        transform: translateY(-1px);
-    }
-
-    /* Estado vacío */
-    .empty-state {
-        background: white;
-        border-radius: 1.25rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        padding: 4rem 2rem;
-        text-align: center;
-    }
-
-    .empty-icon {
-        width: 5rem;
-        height: 5rem;
-        background: rgb(249, 250, 251);
-        border-radius: 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        color: rgb(156, 163, 175);
-    }
-
-    .empty-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: rgb(17, 24, 39);
-        margin-bottom: 0.75rem;
-    }
-
-    .empty-text {
-        color: rgb(107, 114, 128);
-        margin-bottom: 1.5rem;
-    }
-
-    /* Filtros */
-    .filters-card {
-        background: white;
-        border-radius: 1.25rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        padding: 1.5rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .filters-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid rgb(243, 244, 246);
-    }
-
-    .filters-title {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: rgb(17, 24, 39);
-    }
-
-    .btn-reset-filters {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: rgb(241, 245, 249);
-        color: rgb(51, 65, 85);
-        font-size: 0.875rem;
-        font-weight: 600;
-        border-radius: 0.625rem;
-        transition: all 0.2s ease;
-        border: 1px solid rgb(226, 232, 240);
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .btn-reset-filters:hover {
-        background: rgb(226, 232, 240);
-        border-color: rgb(203, 213, 225);
-    }
-
-    .filters-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    @media (min-width: 640px) {
-        .filters-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (min-width: 1024px) {
-        .filters-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1.25rem;
-        }
-    }
-
-    .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .filter-label {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: rgb(55, 65, 81);
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-    }
-
-    .filter-input,
-    .filter-select {
-        padding: 0.75rem 1rem;
-        background: rgb(249, 250, 251);
-        border: 1px solid rgb(226, 232, 240);
-        border-radius: 0.625rem;
-        font-size: 0.9375rem;
-        color: rgb(31, 41, 55);
-        transition: all 0.2s ease;
-        font-family: inherit;
-    }
-
-    .filter-input:focus,
-    .filter-select:focus {
-        outline: none;
-        background: white;
-        border-color: rgb(59, 130, 246);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .filter-input::placeholder {
-        color: rgb(156, 163, 175);
-    }
-
-    .btn-filter {
-        width: 100%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        background: rgb(59, 130, 246);
-        color: white;
-        font-weight: 600;
-        font-size: 0.9375rem;
-        border-radius: 0.625rem;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-filter:hover {
-        background: rgb(37, 99, 235);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        transform: translateY(-1px);
-    }
-
-    .btn-filter:active {
-        transform: translateY(0);
-    }
-</style>
 @endsection

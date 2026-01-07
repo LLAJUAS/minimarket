@@ -7,8 +7,7 @@
     
     <ul class="nav-links">
         <li><a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Inicio</a></li>
-        <li><a href="#" class="{{ request()->routeIs('nosotros') ? 'active' : '' }}">Nosotros</a></li>
-        <li><a href="#" class="{{ request()->routeIs('contacto') ? 'active' : '' }}">Contacto</a></li>
+       
 
         {{-- Solo en móvil: Iniciar Sesión --}}
         <li class="mobile-login">

@@ -14,8 +14,48 @@
     <!-- Menú de navegación -->
     <div class="sidebar-menu">
         <div class="menu-label">MENU</div>
-        
+         {{-- PESTAÑA DE DASHBOARD --}}
+        @if(auth()->user()->hasPermission('ver-dashboard'))
+        <div class="menu-item">
+            <a href="{{ route('dashboard') }}" class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </div>
+        @endif
+
+        {{-- VENTA RAPIDA --}}
+        @if(auth()->user()->hasPermission('ver-venta-rapida'))
+        <div class="menu-item">
+            <a href="{{ route('venta.index') }}" class="menu-link {{ request()->routeIs('venta.index') ? 'active' : '' }}">
+                <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <span class="menu-text">Venta Rápida</span>
+            </a>
+        </div>
+        @endif
+           {{-- PESTAÑA DE VENTAS --}}
+        @if(auth()->user()->hasPermission('ver-ventas'))
+        <div class="menu-item">
+            <a href="{{ route('ventas.index') }}" class="menu-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
+                <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <span class="menu-text">Ventas</span>
+            </a>
+        </div>
+        @endif
         {{-- PESTAÑA DE PROVEEDORES --}}
+        @if(auth()->user()->hasPermission('ver-proveedores'))
         <div class="menu-item">
             <a href="{{ route('proveedores') }}" class="menu-link {{ request()->routeIs('proveedores.*') ? 'active' : '' }}">
                 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,8 +64,10 @@
                 <span class="menu-text">Proveedores</span>
             </a>
         </div>
+        @endif
 
         {{-- PESTAÑA DE PRODUCTOS --}}
+        @if(auth()->user()->hasPermission('ver-productos'))
         <div class="menu-item">
             <a href="{{ route('productos.index') }}" class="menu-link {{ request()->routeIs('productos.*') ? 'active' : '' }}">
                 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -36,6 +78,21 @@
                 <span class="menu-text">Productos</span>
             </a>
         </div>
+        @endif
+      
+         {{-- PESTAÑA DE USUARIOS --}}
+        @if(auth()->user()->hasPermission('ver-usuarios'))
+        <div class="menu-item">
+            <a href="{{ route('usuarios.index') }}" class="menu-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                <span class="menu-text">Usuarios</span>
+            </a>
+        </div>
+        @endif
+        
     </div>
 
     <!-- Sección de usuario mejorada -->
@@ -74,13 +131,7 @@
                 
                 <div class="dropdown-divider"></div>
                 
-                <a href="#" class="dropdown-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    <span>Mi Perfil</span>
-                </a>
+                
                 
                 <div class="dropdown-divider"></div>
                 

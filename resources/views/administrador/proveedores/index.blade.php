@@ -5,6 +5,91 @@
 @section('title', 'Gestión de Proveedores')
 
 @section('content')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fef7ec',
+                            100: '#fdecd3',
+                            200: '#fbd6a5',
+                            300: '#f9ba6d',
+                            400: '#F2A922',
+                            500: '#F28705',
+                            600: '#d96d04',
+                            700: '#b45107',
+                            800: '#92400d',
+                            900: '#78350f',
+                        },
+                        accent: {
+                            50: '#f0f9e8',
+                            100: '#ddf2c7',
+                            200: '#bfe592',
+                            300: '#9dd458',
+                            400: '#6fb82f',
+                            500: '#3B7312',
+                            600: '#2f5d0d',
+                            700: '#254809',
+                            800: '#1d3607',
+                            900: '#162d05',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .provider-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .provider-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(242, 135, 5, 0.2);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #F28705 0%, #F2A922 100%);
+        }
+        
+        .accent-gradient {
+            background: linear-gradient(135deg, #3B7312 0%, #6fb82f 100%);
+        }
+        
+        .search-dropdown {
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 min-h-screen">
+
     @php
         $isPaginated = method_exists($proveedores, 'hasPages')
             || $proveedores instanceof \Illuminate\Contracts\Pagination\Paginator
@@ -15,81 +100,77 @@
             : $proveedores->count();
     @endphp
 
-    <div class="min-h-screen bg-slate-50 p-4 md:p-6 lg:p-8">
+    <div class="min-h-screen p-4 md:p-8">
         <div class="max-w-7xl mx-auto space-y-6">
-
-            {{-- CABECERA --}}
-            <div class="card-elegant">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div class="space-y-3">
-                        <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Gestión de Proveedores</h1>
-                        <p class="text-gray-600 text-base">Administra la información de tus proveedores</p>
-                        <div class="flex items-center gap-2">
-                            <span class="badge-count">
-                                <span class="count-dot"></span>
-                                {{ $total }} {{ $total === 1 ? 'Proveedor' : 'Proveedores' }}
-                            </span>
-                        </div>
+            
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-truck text-white text-xl"></i>
                     </div>
-
-                    <a href="{{ route('proveedores.create') }}" class="btn-primary">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Gestión de Proveedores</h1>
+                        <p class="text-gray-500 text-sm">Administra la información de tus proveedores</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between mt-4">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-accent-50 to-accent-100 rounded-full border-2 border-accent-300">
+                        <span class="w-2 h-2 bg-accent-500 rounded-full animate-pulse"></span>
+                        <span class="text-sm font-bold text-accent-700">{{ $total }} {{ $total === 1 ? 'Proveedor' : 'Proveedores' }}</span>
+                    </div>
+                    
+                    <a href="{{ route('proveedores.create') }}" 
+                       class="inline-flex items-center gap-2 px-6 py-3 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                        <i class="fas fa-plus"></i>
                         Agregar Proveedor
                     </a>
                 </div>
             </div>
 
-            {{-- BUSCADOR Y FILTROS --}}
-            <div class="card-elegant">
+            <!-- Search and Filters -->
+            <div class="glass-effect rounded-2xl p-6 shadow-lg">
                 <div class="flex flex-col lg:flex-row gap-4">
-
-                    {{-- BUSCADOR --}}
-                    <div class="flex-1 w-full relative">
+                    
+                    <!-- Search Input -->
+                    <div class="flex-1 relative">
                         <form action="{{ route('proveedores') }}" method="GET" class="w-full">
-                            <div class="search-container">
-                                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                                <input 
-                                    type="text" 
-                                    id="buscador" 
-                                    name="search" 
-                                    autocomplete="off" 
-                                    value="{{ $search ?? '' }}"
-                                    placeholder="Buscar por empresa, contacto, email o teléfono..."
-                                    class="search-input">
+                            <div class="relative glass-effect rounded-2xl shadow-lg overflow-hidden">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-6 pointer-events-none">
+                                    <i class="fas fa-search text-primary-500 text-xl"></i>
+                                </div>
+                                <input type="text" 
+                                       id="buscador" 
+                                       name="search" 
+                                       autocomplete="off" 
+                                       value="{{ $search ?? '' }}"
+                                       placeholder="Buscar por empresa, contacto, email o teléfono..."
+                                       class="w-full pl-16 pr-6 py-5 text-lg bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-900 placeholder-gray-400">
                             </div>
                         </form>
-                        <div id="resultados-busqueda" class="search-results"></div>
+                        <div id="resultados-busqueda" class="absolute w-full mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden z-50 search-dropdown hidden"></div>
                     </div>
 
+                    <!-- Filter Buttons -->
                     <div class="flex flex-wrap gap-3">
-                        {{-- BOTÓN BORRAR FILTROS --}}
                         @if($search || $sort)
-                            <a href="{{ route('proveedores') }}" class="btn-clear">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                            <a href="{{ route('proveedores') }}" 
+                               class="inline-flex items-center gap-2 px-4 py-3 bg-red-50 text-red-600 font-bold rounded-xl border-2 border-red-200 hover:bg-red-100 transition-all">
+                                <i class="fas fa-times"></i>
                                 Limpiar filtros
                             </a>
                         @endif
 
-                        {{-- ORDENAR --}}
                         <a href="{{ route('proveedores', ['search' => $search, 'sort' => 'desc']) }}" 
-                           class="btn-filter {{ $sort === 'desc' ? 'active' : '' }}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
-                            </svg>
+                           class="inline-flex items-center gap-2 px-4 py-3 font-bold rounded-xl border-2 transition-all {{ $sort === 'desc' ? 'gradient-bg text-white border-primary-500 shadow-lg' : 'bg-white text-gray-700 border-gray-200 hover:border-primary-300' }}">
+                            <i class="fas fa-sort-amount-down"></i>
                             Más Reciente
                         </a>
 
                         <a href="{{ route('proveedores', ['search' => $search, 'sort' => 'asc']) }}" 
-                           class="btn-filter {{ $sort === 'asc' ? 'active' : '' }}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"></path>
-                            </svg>
+                           class="inline-flex items-center gap-2 px-4 py-3 font-bold rounded-xl border-2 transition-all {{ $sort === 'asc' ? 'gradient-bg text-white border-primary-500 shadow-lg' : 'bg-white text-gray-700 border-gray-200 hover:border-primary-300' }}">
+                            <i class="fas fa-sort-amount-up"></i>
                             Más Antiguo
                         </a>
                     </div>
@@ -97,68 +178,71 @@
                 </div>
             </div>
 
-            {{-- LISTA --}}
+            <!-- Providers List -->
             <div class="space-y-4">
                 @forelse ($proveedores as $proveedor)
-                    <div class="provider-card">
-                        <div class="provider-content">
-
-                            {{-- INFO --}}
-                            <div class="provider-info">
-                                <div class="provider-header">
-                                    <h3 class="provider-title">{{ $proveedor->nombre_empresa }}</h3>
-                                    <p class="provider-date">
-                                        <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
+                    <div class="provider-card glass-effect rounded-2xl p-6 shadow-lg border border-primary-100">
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            
+                            <!-- Provider Info -->
+                            <div class="flex-1">
+                                <div class="pb-4 border-b border-gray-200 mb-4">
+                                    <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ $proveedor->nombre_empresa }}</h3>
+                                    <p class="text-sm text-gray-500 flex items-center gap-2">
+                                        <i class="fas fa-calendar-alt"></i>
                                         Registrado: {{ $proveedor->created_at->format('d/m/Y') }}
                                     </p>
                                 </div>
 
-                                <div class="provider-grid">
-                                    <div class="info-item">
-                                        <p class="info-label">Contacto</p>
-                                        <p class="info-value">{{ $proveedor->nombre_contacto ?? '-' }}</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Contacto</p>
+                                        <p class="text-base font-semibold text-gray-900">{{ $proveedor->nombre_contacto ?? '-' }}</p>
                                     </div>
 
-                                    <div class="info-item">
-                                        <p class="info-label">Celular</p>
-                                        <p class="info-value">{{ $proveedor->celular ?? '-' }}</p>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Celular</p>
+                                        <p class="text-base font-semibold text-gray-900">{{ $proveedor->celular ?? '-' }}</p>
                                     </div>
 
-                                    <div class="info-item">
-                                        <p class="info-label">Email</p>
-                                        <p class="info-value">{{ $proveedor->email ?? '-' }}</p>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                                        <p class="text-base font-semibold text-gray-900 truncate">{{ $proveedor->email ?? '-' }}</p>
                                     </div>
 
-                                    <div class="info-item">
-    <p class="info-label">Productos</p>
-    <p class="info-value">{{ $proveedor->productos_count }}</p>
-</div>
-
-                                    <div class="info-item">
-                                        <p class="info-label">Dirección</p>
-                                        <p class="info-value">{{ $proveedor->direccion ?? '-' }}</p>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Productos</p>
+                                        <p class="text-base font-semibold text-primary-600">{{ $proveedor->productos_count }}</p>
                                     </div>
                                 </div>
+
+                                @if($proveedor->direccion)
+                                    <div class="mt-4 pt-4 border-t border-gray-100">
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Dirección</p>
+                                        <p class="text-sm text-gray-700">{{ $proveedor->direccion }}</p>
+                                    </div>
+                                @endif
                             </div>
 
-                            {{-- BOTONES --}}
-                            <div class="provider-actions">
-                                <a href="{{ route('proveedores.productos.index', $proveedor) }}" class="btn-action btn-green">
-                                    Ver productos
+                            <!-- Actions -->
+                            <div class="flex flex-col gap-3 lg:w-48 lg:border-l lg:border-gray-200 lg:pl-6">
+                                <a href="{{ route('proveedores.productos.index', $proveedor) }}" 
+                                   class="w-full py-3 px-4 accent-gradient text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all text-center">
+                                    <i class="fas fa-box mr-2"></i>Ver productos
                                 </a>
 
-                                <a href="{{ route('proveedores.edit', $proveedor->id) }}" class="btn-action btn-orange">
-                                    Editar
+                                <a href="{{ route('proveedores.edit', $proveedor->id) }}" 
+                                   class="w-full py-3 px-4 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all text-center">
+                                    <i class="fas fa-edit mr-2"></i>Editar
                                 </a>
 
                                 <form action="{{ route('proveedores.destroy', $proveedor->id) }}" method="POST" class="w-full"
                                     onsubmit="return confirm('¿Eliminar {{ $proveedor->nombre_empresa }}?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn-action btn-red">
-                                        Eliminar
+                                    <button type="submit" 
+                                            class="w-full py-3 px-4 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                                        <i class="fas fa-trash mr-2"></i>Eliminar
                                     </button>
                                 </form>
                             </div>
@@ -166,14 +250,12 @@
                         </div>
                     </div>
                 @empty
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                            </svg>
+                    <div class="glass-effect rounded-2xl p-16 text-center shadow-lg">
+                        <div class="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-truck text-primary-500 text-4xl"></i>
                         </div>
-                        <h3 class="empty-title">No se encontraron proveedores</h3>
-                        <p class="empty-text">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">No se encontraron proveedores</h3>
+                        <p class="text-gray-500 mb-6">
                             @if($search)
                                 No hay resultados para tu búsqueda
                             @else
@@ -182,14 +264,14 @@
                         </p>
 
                         @if($search)
-                            <a href="{{ route('proveedores') }}" class="btn-primary mt-4">
+                            <a href="{{ route('proveedores') }}" 
+                               class="inline-flex items-center gap-2 px-6 py-3 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
                                 Limpiar búsqueda
                             </a>
                         @else
-                            <a href="{{ route('proveedores.create') }}" class="btn-primary mt-4">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
+                            <a href="{{ route('proveedores.create') }}" 
+                               class="inline-flex items-center gap-2 px-6 py-3 gradient-bg text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                                <i class="fas fa-plus"></i>
                                 Agregar Primer Proveedor
                             </a>
                         @endif
@@ -199,361 +281,6 @@
 
         </div>
     </div>
-
-    <style>
-        /* Cards y Contenedores */
-        .card-elegant {
-            background: white;
-            border-radius: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            padding: 2rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .card-elegant:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-color: rgba(203, 213, 225, 0.8);
-        }
-
-        /* Badge de Contador */
-        .badge-count {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(34, 197, 94, 0.08);
-            color: rgb(21, 128, 61);
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            border: 1px solid rgba(34, 197, 94, 0.2);
-        }
-
-        .count-dot {
-            width: 0.5rem;
-            height: 0.5rem;
-            background: rgb(34, 197, 94);
-            border-radius: 9999px;
-            animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Botones */
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.75rem;
-            background: rgb(22, 163, 74);
-            color: white;
-            font-weight: 600;
-            border-radius: 0.875rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: rgb(21, 128, 61);
-            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-clear {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.25rem;
-            background: rgba(239, 68, 68, 0.08);
-            color: rgb(185, 28, 28);
-            font-weight: 600;
-            border-radius: 0.875rem;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            transition: all 0.2s ease;
-        }
-
-        .btn-clear:hover {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-filter {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.25rem;
-            background: rgb(249, 250, 251);
-            color: rgb(55, 65, 81);
-            font-weight: 600;
-            border-radius: 0.875rem;
-            border: 1px solid rgb(229, 231, 235);
-            transition: all 0.2s ease;
-        }
-
-        .btn-filter:hover {
-            background: rgb(243, 244, 246);
-            border-color: rgb(209, 213, 219);
-        }
-
-        .btn-filter.active {
-            background: rgb(22, 163, 74);
-            color: white;
-            border-color: rgb(22, 163, 74);
-            box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
-        }
-
-        /* Buscador */
-        .search-container {
-            position: relative;
-            width: 100%;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 1.25rem;
-            height: 1.25rem;
-            color: rgb(156, 163, 175);
-            pointer-events: none;
-            transition: color 0.2s ease;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.875rem 1rem 0.875rem 3rem;
-            border: 1px solid rgb(229, 231, 235);
-            border-radius: 0.875rem;
-            font-size: 0.9375rem;
-            transition: all 0.2s ease;
-            outline: none;
-        }
-
-        .search-input:focus {
-            border-color: rgb(22, 163, 74);
-            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
-        }
-
-        .search-input:focus ~ .search-icon {
-            color: rgb(22, 163, 74);
-        }
-
-        .search-results {
-            display: none;
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid rgb(226, 232, 240);
-            border-radius: 0.875rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            max-height: 24rem;
-            overflow-y: auto;
-            z-index: 50;
-        }
-
-        .search-results:not(.hidden) {
-            display: block;
-        }
-
-        /* Tarjetas de Proveedor */
-        .provider-card {
-            background: white;
-            border-radius: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-        }
-
-        .provider-card:hover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            border-color: rgba(203, 213, 225, 0.8);
-            transform: translateY(-2px);
-        }
-
-        .provider-content {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            padding: 1.5rem;
-        }
-
-        @media (min-width: 1280px) {
-            .provider-content {
-                flex-direction: row;
-                justify-content: space-between;
-            }
-        }
-
-        .provider-info {
-            flex: 1;
-        }
-
-        .provider-header {
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgb(243, 244, 246);
-            margin-bottom: 1.25rem;
-        }
-
-        .provider-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: rgb(17, 24, 39);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.025em;
-        }
-
-        .provider-date {
-            display: flex;
-            align-items: center;
-            gap: 0.375rem;
-            font-size: 0.875rem;
-            color: rgb(107, 114, 128);
-        }
-
-        .provider-grid {
-            display: grid;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            gap: 1.25rem;
-        }
-
-        @media (min-width: 640px) {
-            .provider-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .provider-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-            }
-        }
-
-        .info-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.375rem;
-        }
-
-        .info-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: rgb(107, 114, 128);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .info-value {
-            font-size: 0.9375rem;
-            font-weight: 500;
-            color: rgb(31, 41, 55);
-        }
-
-        /* Acciones */
-        .provider-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            width: 100%;
-        }
-
-        @media (min-width: 1280px) {
-            .provider-actions {
-                width: 11rem;
-                border-left: 1px solid rgb(243, 244, 246);
-                padding-left: 1.5rem;
-            }
-        }
-
-        .btn-action {
-            width: 100%;
-            padding: 0.75rem 1.25rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-align: center;
-            border-radius: 0.75rem;
-            transition: all 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-green {
-            background: rgb(22, 163, 74);
-            color: white;
-            box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
-        }
-
-        .btn-green:hover {
-            background: rgb(21, 128, 61);
-            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-orange {
-            background: rgb(249, 115, 22);
-            color: white;
-            box-shadow: 0 1px 3px rgba(249, 115, 22, 0.3);
-        }
-
-        .btn-orange:hover {
-            background: rgb(234, 88, 12);
-            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-red {
-            background: rgb(220, 38, 38);
-            color: white;
-            box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
-        }
-
-        .btn-red:hover {
-            background: rgb(185, 28, 28);
-            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
-            transform: translateY(-1px);
-        }
-
-        /* Estado Vacío */
-        .empty-state {
-            background: white;
-            border-radius: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .empty-icon {
-            width: 5rem;
-            height: 5rem;
-            background: rgb(249, 250, 251);
-            border-radius: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            color: rgb(156, 163, 175);
-        }
-
-        .empty-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: rgb(17, 24, 39);
-            margin-bottom: 0.75rem;
-        }
-
-        .empty-text {
-            color: rgb(107, 114, 128);
-            margin-bottom: 1.5rem;
-        }
-    </style>
 
 @endsection
 
@@ -579,10 +306,17 @@ document.getElementById("buscador").addEventListener("keyup", function () {
                 data.forEach(item => {
                     html += `
                         <a href="/proveedores/${item.id}" 
-                           class="block px-4 py-3 hover:bg-green-50 transition-colors">
-                            <div class="font-semibold text-gray-900">${item.nombre_empresa}</div>
-                            <div class="text-sm text-gray-600">${item.nombre_contacto ?? 'Sin contacto'}</div>
-                            <div class="text-xs text-gray-500 mt-1">${item.celular ?? 'Sin celular'}</div>
+                           class="block px-6 py-4 hover:bg-primary-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-truck text-primary-600"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-900">${item.nombre_empresa}</div>
+                                    <div class="text-sm text-gray-600">${item.nombre_contacto ?? 'Sin contacto'}</div>
+                                    <div class="text-xs text-gray-500 mt-1"><i class="fas fa-phone mr-1"></i>${item.celular ?? 'Sin celular'}</div>
+                                </div>
+                            </div>
                         </a>
                     `;
                 });
@@ -613,4 +347,3 @@ document.getElementById("buscador").addEventListener("focus", function () {
     }
 });
 </script>
-</document_content>

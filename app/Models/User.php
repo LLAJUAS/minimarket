@@ -55,4 +55,22 @@ class User extends Authenticatable
         
         return $this->belongsToMany(Role::class);
     }
+
+    /**
+     * Comprueba si el usuario tiene un permiso específico a través de sus roles.
+     */
+    public function hasPermission($slug)
+    {
+        // El Administrador siempre tiene todos los permisos por defecto
+        if ($this->roles->contains('nombre_rol', 'Administrador')) {
+            return true;
+        }
+
+        foreach ($this->roles as $role) {
+            if ($role->permissions->where('slug', $slug)->first()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
