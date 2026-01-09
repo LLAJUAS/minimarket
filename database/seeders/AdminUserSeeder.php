@@ -17,7 +17,7 @@ class AdminUserSeeder extends Seeder
     {
         // 1. Crear el rol 'Admin'
         $roleAdmin = Role::firstOrCreate(
-            ['nombre_rol' => 'Admin']
+            ['nombre_rol' => 'Administrador']
         );
 
         // 2. Crear el usuario 'admin'
