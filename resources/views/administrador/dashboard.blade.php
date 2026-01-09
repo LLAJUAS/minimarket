@@ -97,7 +97,7 @@
     </style>
 
 <div class="flex min-h-screen">
-    @include('componentes.sidebaradmin')
+   
 
     <div class="flex-1 p-4 md:p-8 overflow-visible relative">
         <div class="max-w-7xl mx-auto space-y-8">

@@ -31,6 +31,10 @@ class RoleController extends Controller
 
     public function update(Request $request, Role $role)
     {
+        if ($role->nombre_rol === 'Administrador') {
+            return redirect()->route('roles.index')->with('error', 'Operación denegada: El rol Administrador no puede ser modificado.');
+        }
+
         $request->validate([
             'nombre_rol' => 'required|string|max:45|unique:roles,nombre_rol,' . $role->id,
         ]);
@@ -48,6 +52,10 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
+        if ($role->nombre_rol === 'Administrador') {
+            return redirect()->route('roles.index')->with('error', 'Operación denegada: El rol Administrador no puede ser eliminado.');
+        }
+
         if ($role->users()->count() > 0) {
             return back()->with('error', 'No se puede eliminar el rol porque tiene usuarios asignados.');
         }

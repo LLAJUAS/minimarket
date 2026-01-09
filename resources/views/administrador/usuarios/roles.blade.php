@@ -122,9 +122,11 @@
                         <button onclick="openEditRoleModal({{ $role->id }}, '{{ $role->nombre_rol }}', {{ $role->permissions->pluck('id') }})" class="w-9 h-9 flex items-center justify-center bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
+                        @if($role->nombre_rol !== 'Administrador')
                         <button onclick="confirmDeleteRole({{ $role->id }}, '{{ $role->nombre_rol }}')" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
+                        @endif
                     </div>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $role->nombre_rol }}</h3>
@@ -216,31 +218,63 @@
 </div>
 
 <script>
+    let currentRoleName = '';
+
     function openAddRoleModal() {
+        currentRoleName = '';
         document.getElementById('role-modal-title').innerHTML = '<i class="fas fa-user-tag mr-2"></i>Nuevo Rol';
         document.getElementById('role-form').action = "{{ route('roles.store') }}";
         document.getElementById('role-method').value = 'POST';
         document.getElementById('role-nombre').value = '';
+        document.getElementById('role-nombre').disabled = false;
         
         // Limpiar checkboxes
-        document.querySelectorAll('.permission-checkbox').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.permission-checkbox').forEach(cb => {
+            cb.checked = false;
+            cb.disabled = false;
+        });
         
         document.getElementById('modal-role').classList.remove('hidden');
     }
 
     function openEditRoleModal(id, nombre, permissionIds) {
+        currentRoleName = nombre;
         document.getElementById('role-modal-title').innerHTML = '<i class="fas fa-edit mr-2"></i>Editar Rol';
         document.getElementById('role-form').action = `/roles/${id}`;
         document.getElementById('role-method').value = 'PUT';
         document.getElementById('role-nombre').value = nombre;
 
+        const isAdmin = (nombre === 'Administrador');
+        document.getElementById('role-nombre').disabled = isAdmin;
+
         // Limpiar y marcar checkboxes
         document.querySelectorAll('.permission-checkbox').forEach(cb => {
             cb.checked = permissionIds.includes(parseInt(cb.value));
+            // No deshabilitamos los checkboxes con .disabled para que sigan enviándose en el form si es necesario, 
+            // pero controlamos el cambio en el evento click
         });
 
         document.getElementById('modal-role').classList.remove('hidden');
     }
+
+    // Prevenir cambios en los checkboxes si es Admin
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('permission-checkbox') && currentRoleName === 'Administrador') {
+            e.preventDefault();
+            e.target.checked = !e.target.checked; // Revertir el cambio
+            Swal.fire({
+                icon: 'error',
+                title: 'Operación denegada',
+                text: 'No se pueden modificar los permisos del rol Administrador.',
+                confirmButtonColor: '#F28705'
+            });
+        }
+    });
+
+    // Manejar el submit para asegurar que el nombre se envíe aunque esté disabled
+    document.getElementById('role-form').addEventListener('submit', function(e) {
+        document.getElementById('role-nombre').disabled = false;
+    });
 
     function closeRoleModal() {
         document.getElementById('modal-role').classList.add('hidden');
